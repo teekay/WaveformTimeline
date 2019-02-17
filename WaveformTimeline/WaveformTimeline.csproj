@@ -104,16 +104,11 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitignore" />
     <None Include="app.config" />
-    <None Include="Readme.md" />
     <None Include="WaveformTimeline.nuspec">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="License.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
