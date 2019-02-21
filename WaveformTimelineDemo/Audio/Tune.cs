@@ -81,7 +81,7 @@ namespace WaveformTimelineDemo.Audio
 
         private void FillInWaveformData(float[] waveformFloats)
         {
-            _waveformBytes = new BytesFromFloats(waveformFloats).Bytes();
+            _waveformBytes = new FloatsAsBytes(waveformFloats).Bytes();
         }
 
         public double[] Cues() => new double[] {0, 1};

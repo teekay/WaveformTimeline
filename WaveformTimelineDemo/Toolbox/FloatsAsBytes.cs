@@ -3,9 +3,12 @@ using JetBrains.Annotations;
 
 namespace WaveformTimelineDemo.Toolbox
 {
-    internal class BytesFromFloats
+    /// <summary>
+    /// Encapsulates an array of floats, and provides it as an array of bytes.
+    /// </summary>
+    internal class FloatsAsBytes
     {
-        public BytesFromFloats([NotNull] float[] floats)
+        public FloatsAsBytes([NotNull] float[] floats)
         {
             _floats = floats ?? throw new ArgumentNullException(nameof(floats));
         }
@@ -13,7 +16,6 @@ namespace WaveformTimelineDemo.Toolbox
         private readonly float[] _floats;
 
         /// <summary>
-        /// Takes a floats array of arbitrary floats, and returns is as an array of bytes
         /// </summary>
         /// <returns></returns>
         public byte[] Bytes()

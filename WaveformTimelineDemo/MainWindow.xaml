@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WaveformTimelineDemo"
         xmlns:waveformTimeline="clr-namespace:WaveformTimeline;assembly=WaveformTimeline"
-        mc:Ignorable="d"
-        Title="WaveformTimeline Demo" Height="450" Width="800">
+        mc:Ignorable="d"        
+        Title="WaveformTimeline Demo" 
+        Height="450" 
+        Width="800">
     <Window.DataContext>
         <local:ViewModel/>
     </Window.DataContext>
@@ -18,9 +20,8 @@
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
-        <StackPanel Margin="0,20,0,0" 
-                    VerticalAlignment="Top" 
-                    UseLayoutRounding="True">
+        <StackPanel Margin="5,20,5,0" 
+                    VerticalAlignment="Top">
             <TextBlock Text="{Binding Title, FallbackValue='No track', TargetNullValue='No track'}"
                        Margin="0,0,0,20"
                        FontSize="24"
@@ -37,27 +38,30 @@
                                                WaveformResolution="8000"
                                                TimelineType="Constant"/>
 
-            <Grid>
+            <Grid Margin="5">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0"
                         Margin="0,20,0,0" 
-                        HorizontalAlignment="Center" 
+                        HorizontalAlignment="Left" 
                         Command="{Binding OpenFile}">Load audio file</Button>
                 <Button Grid.Column="1"
                         Margin="0,20,0,0" 
+                        Width="50"
                         HorizontalAlignment="Center" 
                         Command="{Binding Play}">Play</Button>
                 <Button Grid.Column="2"
-                        Margin="0,20,0,0" 
+                        Margin="10,20,0,0" 
+                        Width="50"
                         HorizontalAlignment="Center" 
                         Command="{Binding Pause}">Pause</Button>
                 <Button Grid.Column="3"
-                        Margin="0,20,0,0" 
+                        Margin="10,20,0,0" 
+                        Width="50"
                         HorizontalAlignment="Center" 
                         Command="{Binding Stop}">Stop</Button>
             </Grid>

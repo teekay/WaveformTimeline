@@ -81,7 +81,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Audio\AudioWaveform.cs" />
-    <Compile Include="Toolbox\BytesFromFloats.cs" />
+    <Compile Include="Toolbox\FloatsAsBytes.cs" />
     <Compile Include="Audio\IAudioWaveform.cs" />
     <Compile Include="Audio\ICombiPlayer.cs" />
     <Compile Include="Audio\IPlayer.cs" />
