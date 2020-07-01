@@ -7,6 +7,7 @@
                  xmlns:local="clr-namespace:WaveformTimelineDemo"
                  xmlns:waveformTimeline="clr-namespace:WaveformTimeline;assembly=WaveformTimeline"
                  mc:Ignorable="d"
+                 Style="{DynamicResource MahApps.Styles.MetroWindow.Clean}"
                  Title="MetroWindow" Height="450" Width="800">
   <mah:MetroWindow.DataContext>
         <local:ViewModel/>
@@ -14,11 +15,12 @@
   <mah:MetroWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Clean/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/WaveformTimeline;component/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
   </mah:MetroWindow.Resources>
-  <Grid UseLayoutRounding="True">
+  <Grid>
     <StackPanel Margin="5,20,5,0"
                 VerticalAlignment="Top">
       <TextBlock Text="{Binding Title, FallbackValue='No track', TargetNullValue='No track'}"
@@ -30,7 +32,7 @@
                                          CueBarBackgroundBrush="Black"
                                          ProgressBarBrush="Red"
                                          ProgressBarThickness="2"
-                                         AllowRepositioning="False"
+                                         AllowRepositioning="True"
                                          Width="Auto"
                                          Height="120"
                                          Zoom="1"

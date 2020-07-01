@@ -24,7 +24,7 @@ namespace WaveformTimeline.Controls
     public sealed class ProgressAnimator : BaseControl
     {
         private readonly Storyboard _trackProgressAnimationBoard = new Storyboard();
-        private readonly Line _progressLine = new Line();
+        private readonly Rectangle _progressRect = new Rectangle();
         private readonly Rectangle _captureMouse = new Rectangle();
         private readonly double _indicatorWidth = 6;
         private readonly Brush _transparentBrush = new SolidColorBrush { Color = Color.FromScRgb(0, 0, 0, 0), Opacity = 0 };
@@ -83,7 +83,7 @@ namespace WaveformTimeline.Controls
         /// </summary>
         /// <param name="newValue">The new value of <see cref="ProgressBarThickness"/></param>
         private void OnProgressBarThicknessChanged(double newValue) =>
-            _progressLine.StrokeThickness = newValue;
+            _progressRect.StrokeThickness = newValue;
 
         /// <summary>
         /// Get or sets the thickness of the progress indicator bar.
@@ -174,13 +174,14 @@ namespace WaveformTimeline.Controls
                 //.Throttle(TimeSpan.FromMilliseconds(100))
                 .ObserveOn(uiContext)
                 .Subscribe(AlterProgressAnimationSpeed);
-            var xLocation = StartingX();
-            _progressLine.X1 = _waveformDimensions.LeftMargin();
-            _progressLine.X2 = _waveformDimensions.LeftMargin();
-            _progressLine.Y1 = 0;
-            _progressLine.Y2 = MainCanvas.RenderSize.Height;
-            MainCanvas.Children.Add(_progressLine);
-            _progressLine.Stroke = ProgressBarBrush;
+            _progressRect.Margin = new Thickness(_waveformDimensions.LeftMargin(), 0, 0, 0);
+            _progressRect.Width = 2;
+            _progressRect.Height = MainCanvas.RenderSize.Height;
+            MainCanvas.Children.Add(_progressRect);
+            _progressRect.Stroke = _transparentBrush;
+            _progressRect.StrokeThickness = 0d;
+            _progressRect.Fill = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+            _progressRect.Opacity = 0.4;
             ControlProgressAnimation(EventArgs.Empty);
         }
 
@@ -191,26 +192,22 @@ namespace WaveformTimeline.Controls
         {
             if (!Tune.PlaybackOn()) return;
 
-            var sourceX = StartingX();
-            var targetX = _waveformDimensions.LeftMargin() + _waveformDimensions.Width();
+            var sourceX = StartingX() - _waveformDimensions.LeftMargin();
+            var targetX = _waveformDimensions.Width();
             if (targetX < sourceX || targetX <= 0) return;
 
             var remainingTimeInSeconds = TimeSpan.FromSeconds(_coverageArea.Remaining(Tune.CurrentTime().TotalSeconds)); // Tip: do not adjust by Tune.Tempo, it will be taken into account by AlterProgressAnimationSpeed()
             DoubleAnimation XAnimation() => new DoubleAnimation(sourceX, targetX, remainingTimeInSeconds);
-            var lineAnimationX1 = XAnimation();
-            var lineAnimationX2 = XAnimation();
+            var widthAnimation = XAnimation();
 
             _trackProgressAnimationBoard.Children.Clear();
-            _trackProgressAnimationBoard.Children.Add(lineAnimationX1);
-            _trackProgressAnimationBoard.Children.Add(lineAnimationX2);
+            _trackProgressAnimationBoard.Children.Add(widthAnimation);
             _trackProgressAnimationBoard.Duration = remainingTimeInSeconds;
 
-            Storyboard.SetTarget(lineAnimationX1, _progressLine);
-            Storyboard.SetTarget(lineAnimationX2, _progressLine);
+            Storyboard.SetTarget(widthAnimation, _progressRect);
 
-            Storyboard.SetTargetProperty(lineAnimationX1, new PropertyPath(Line.X1Property));
-            Storyboard.SetTargetProperty(lineAnimationX2, new PropertyPath(Line.X2Property));
-            System.Windows.Media.Animation.Timeline.SetDesiredFrameRate(_trackProgressAnimationBoard, 60);
+            Storyboard.SetTargetProperty(widthAnimation, new PropertyPath(Rectangle.WidthProperty));
+            //System.Windows.Media.Animation.Timeline.SetDesiredFrameRate(_trackProgressAnimationBoard, 60);
         }
 
         /// <summary>
@@ -273,7 +270,7 @@ namespace WaveformTimeline.Controls
             _playbackOnOffNotifier?.Dispose();
             StopAnimations();
             _trackProgressAnimationBoard.Completed -= TrackProgressAnimationBoardOnCompleted;
-            MainCanvas.Children.Remove(_progressLine);
+            MainCanvas.Children.Remove(_progressRect);
         }
     }
 }
