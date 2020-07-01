@@ -20,14 +20,11 @@ namespace WaveformTimeline.Controls
     [DisplayName(@"Progress")]
     [Description("Shows and animates the position of playback in time relative to the total length of the audio stream, and lets the DJ change the playback position.")]
     [ToolboxItem(true)]
-    [TemplatePart(Name = "PART_Triangle", Type = typeof(Canvas)),
-     TemplatePart(Name = "PART_ProgressLine", Type = typeof(Canvas))]
+    [TemplatePart(Name = "PART_ProgressLine", Type = typeof(Canvas))]
     public sealed class ProgressAnimator : BaseControl
     {
         private readonly Storyboard _trackProgressAnimationBoard = new Storyboard();
-        private Canvas _indicatorCanvas;
         private readonly Line _progressLine = new Line();
-        private readonly Polygon _progressIndicator = new Polygon();
         private readonly Rectangle _captureMouse = new Rectangle();
         private readonly double _indicatorWidth = 6;
         private readonly Brush _transparentBrush = new SolidColorBrush { Color = Color.FromScRgb(0, 0, 0, 0), Opacity = 0 };
@@ -120,7 +117,6 @@ namespace WaveformTimeline.Controls
         {
             base.OnApplyTemplate();
             MainCanvas = GetTemplateChild("PART_ProgressLine") as Canvas;
-            _indicatorCanvas = GetTemplateChild("PART_Triangle") as Canvas;
             _captureMouse.Fill = _transparentBrush;
             MainCanvas.Children.Add(_captureMouse);
             Render();
@@ -154,8 +150,6 @@ namespace WaveformTimeline.Controls
         private double StartingX() => new FiniteDouble(_waveformDimensions.PositionOnRenderedWaveform(
             _coverageArea.Progress(Tune.CurrentTime().TotalSeconds))); // this is progress within the rendered area
 
-        private double IndicatorCanvasHeight() => _indicatorCanvas?.RenderSize.Height ?? 0.0d;
-
         protected override void Render()
         {
             Clear();
@@ -181,20 +175,11 @@ namespace WaveformTimeline.Controls
                 .ObserveOn(uiContext)
                 .Subscribe(AlterProgressAnimationSpeed);
             var xLocation = StartingX();
-            _progressIndicator.Points = new PointCollection()
-            {
-                new Point(xLocation - _indicatorWidth/2.0d, IndicatorCanvasHeight()/2 + 1),
-                new Point(xLocation + _indicatorWidth/2.0d, IndicatorCanvasHeight()/2 + 1),
-                new Point(xLocation, IndicatorCanvasHeight())
-            };
-            _progressIndicator.Margin = _zeroMargin;
             _progressLine.X1 = _waveformDimensions.LeftMargin();
             _progressLine.X2 = _waveformDimensions.LeftMargin();
             _progressLine.Y1 = 0;
             _progressLine.Y2 = MainCanvas.RenderSize.Height;
             MainCanvas.Children.Add(_progressLine);
-            _indicatorCanvas.Children.Add(_progressIndicator);
-            _progressIndicator.Fill = ProgressBarBrush;
             _progressLine.Stroke = ProgressBarBrush;
             ControlProgressAnimation(EventArgs.Empty);
         }
@@ -214,24 +199,17 @@ namespace WaveformTimeline.Controls
             DoubleAnimation XAnimation() => new DoubleAnimation(sourceX, targetX, remainingTimeInSeconds);
             var lineAnimationX1 = XAnimation();
             var lineAnimationX2 = XAnimation();
-            var centerPoint = _progressIndicator.Points[2];
-            var triangleAnimation = new ThicknessAnimation(
-                new Thickness(sourceX - centerPoint.X, 0, 0, 0), 
-                new Thickness(targetX - centerPoint.X, 0, 0, 0), remainingTimeInSeconds);
 
             _trackProgressAnimationBoard.Children.Clear();
             _trackProgressAnimationBoard.Children.Add(lineAnimationX1);
             _trackProgressAnimationBoard.Children.Add(lineAnimationX2);
-            _trackProgressAnimationBoard.Children.Add(triangleAnimation);
             _trackProgressAnimationBoard.Duration = remainingTimeInSeconds;
 
             Storyboard.SetTarget(lineAnimationX1, _progressLine);
             Storyboard.SetTarget(lineAnimationX2, _progressLine);
-            Storyboard.SetTarget(triangleAnimation, _progressIndicator);
 
             Storyboard.SetTargetProperty(lineAnimationX1, new PropertyPath(Line.X1Property));
             Storyboard.SetTargetProperty(lineAnimationX2, new PropertyPath(Line.X2Property));
-            Storyboard.SetTargetProperty(triangleAnimation, new PropertyPath(MarginProperty));
             System.Windows.Media.Animation.Timeline.SetDesiredFrameRate(_trackProgressAnimationBoard, 60);
         }
 
@@ -296,7 +274,6 @@ namespace WaveformTimeline.Controls
             StopAnimations();
             _trackProgressAnimationBoard.Completed -= TrackProgressAnimationBoardOnCompleted;
             MainCanvas.Children.Remove(_progressLine);
-            _indicatorCanvas?.Children.Remove(_progressIndicator);
         }
     }
 }
