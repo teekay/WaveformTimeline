@@ -254,7 +254,10 @@ namespace WaveformTimeline.Controls
             }
             else
             {
-                _trackProgressAnimationBoard.Pause(this);
+                if (StoryboardStarted)
+                {
+                    _trackProgressAnimationBoard.Pause(this);
+                }
             }
         }
 

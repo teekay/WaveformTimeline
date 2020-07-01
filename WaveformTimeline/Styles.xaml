@@ -54,7 +54,8 @@
                                          CenterLineBrush="{TemplateBinding CenterLineBrush}"
                                          CenterLineThickness="{TemplateBinding CenterLineThickness}"
                                          WaveformResolution="{TemplateBinding WaveformResolution}"
-                                         AutoScaleWaveformCache="{TemplateBinding AutoScaleWaveformCache}"/>
+                                         AutoScaleWaveformCache="{TemplateBinding AutoScaleWaveformCache}"
+                                         ProgressiveRendering="{TemplateBinding ProgressiveRendering}"/>
                             <controls:ProgressAnimator x:Name="Component_Progress"
                                                  Grid.Row="0"
                                                  Grid.RowSpan="2"

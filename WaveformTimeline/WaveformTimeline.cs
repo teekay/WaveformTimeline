@@ -187,6 +187,16 @@ namespace WaveformTimeline
             set => SetValue(WaveformResolutionProperty, value);
         }
 
+        public static readonly DependencyProperty ProgressiveRenderingProperty = DependencyProperty.Register(
+            "ProgressiveRendering", typeof(bool), typeof(WaveformTimeline),
+            new PropertyMetadata(true));
+
+        public bool ProgressiveRendering
+        {
+            get => (bool)GetValue(ProgressiveRenderingProperty);
+            set => SetValue(ProgressiveRenderingProperty, value);
+        }
+
         /// <summary>
         /// Identifies the <see cref="ProgressBarBrush" /> dependency property. 
         /// </summary>

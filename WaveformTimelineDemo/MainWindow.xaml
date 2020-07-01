@@ -36,7 +36,8 @@
                                                Height="120"
                                                Zoom="1"
                                                WaveformResolution="8000"
-                                               TimelineType="Constant"/>
+                                               TimelineType="Constant"
+                                               ProgressiveRendering="True"/>
 
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>

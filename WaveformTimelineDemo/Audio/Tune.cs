@@ -63,7 +63,7 @@ namespace WaveformTimelineDemo.Audio
 
         public IAudioWaveformStream WaveformStream()
         {
-            var observable = new StreamingAudioWaveform(new AudioWaveform(_uri));
+            var observable = new StreamingAudioWaveform(new AudioWaveform(_uri, FFTDataSize.FFT2048));
             _waveformUpdated = observable.Subscribe(
                 AppendWaveformPoint,
                 OnWaveformDataReady);

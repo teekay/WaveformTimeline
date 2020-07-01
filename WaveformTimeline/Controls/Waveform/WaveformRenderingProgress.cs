@@ -33,8 +33,13 @@ namespace WaveformTimeline.Controls.Waveform
         private double _pointsDrawn;
         private readonly double _centerHeight;
 
+        public void DrawWfPointByPoint(float left, float right) =>
+            (_xLocation, _pointsDrawn) = AddWfPoints(left, right);
+
         public void DrawWfPointByPoint(IList<float> leftRight) => 
-            Enumerable.Range(0, leftRight.Count / 2).Select(x => x * 2).ForEach(x => DrawWfPointByPointIter(leftRight, x));
+            Enumerable.Range(0, leftRight.Count / 2)
+                .Select(x => x * 2)
+                .ForEach(x => DrawWfPointByPointIter(leftRight, x));
 
         private void DrawWfPointByPointIter(IList<float> leftRight, int x) =>
             (_xLocation, _pointsDrawn) = AddWfPoints(leftRight[x], leftRight[x + 1]);
