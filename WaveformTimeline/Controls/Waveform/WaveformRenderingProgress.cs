@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using MoreLinq;
 using WaveformTimeline.Commons;
 
 namespace WaveformTimeline.Controls.Waveform
@@ -33,27 +30,20 @@ namespace WaveformTimeline.Controls.Waveform
         private double _pointsDrawn;
         private readonly double _centerHeight;
 
-        public void DrawWfPointByPoint(float left, float right) =>
-            (_xLocation, _pointsDrawn) = AddWfPoints(left, right);
-
-        public void DrawWfPointByPoint(IList<float> leftRight) => 
-            Enumerable.Range(0, leftRight.Count / 2)
-                .Select(x => x * 2)
-                .ForEach(x => DrawWfPointByPointIter(leftRight, x));
-
-        private void DrawWfPointByPointIter(IList<float> leftRight, int x) =>
-            (_xLocation, _pointsDrawn) = AddWfPoints(leftRight[x], leftRight[x + 1]);
-
-        private (double, double) AddWfPoints(float left, float right)
+        public void DrawWaveform(float[] wf)
         {
-            lock (_drawingLock)
+            var height = _mainCanvas.RenderSize.Height / 2.0d;
+            var leftMargin = _waveformDimensions.LeftMargin();
+            var pointsDrawn = _pointsDrawn;
+            var location = _xLocation;
+            for (var i = 0; i < wf.Length; i += 2)
             {
-                var height = _mainCanvas.RenderSize.Height / 2.0d;
-                var location = ((_pointsDrawn / 2) * _pointThickness) + _waveformDimensions.LeftMargin(); // where to draw - increasing by the point thickness
-                _leftWaveformPolyLine.Points.Add(new Point(_xLocation, _centerHeight - left * height));
-                _rightWaveformPolyLine.Points.Add(new Point(_xLocation, _centerHeight + right * height));
-                return (location, _pointsDrawn + 2);
+                location = ((pointsDrawn / 2) * _pointThickness) + leftMargin; // where to draw - increasing by the point thickness
+                _leftWaveformPolyLine.Points.Add(new Point(location, _centerHeight - wf[i] * height));
+                _rightWaveformPolyLine.Points.Add(new Point(location, _centerHeight + wf[i + 1] * height));
+                pointsDrawn += 2;
             }
+            (_xLocation, _pointsDrawn) = (location, pointsDrawn);
         }
 
         public void CompleteWaveform()

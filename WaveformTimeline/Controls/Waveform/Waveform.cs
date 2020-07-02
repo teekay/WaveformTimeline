@@ -425,15 +425,18 @@ namespace WaveformTimeline.Controls.Waveform
         private void RenderProgressively(WaveformSection section, WaveformRenderingProgress renderWaveform)
         {
             var waveformFloats = CreateFloats(Tune.WaveformData());
-            var observable = waveformFloats.Length > 0
-                ? new CachedWaveformObservable(waveformFloats, section)
-                : Tune.WaveformStream();
-            _waveformBuildDisposable = observable.ObserveOn(_uiContext)
-                .Buffer(2)
-                .Subscribe(
-                    renderWaveform.DrawWfPointByPoint,
-                    renderWaveform.CompleteWaveform);
+            if (waveformFloats.Length > 0)
+            {
+                renderWaveform.DrawWaveform(waveformFloats);
+                return;
+            }
             var resolution = WaveformResolution; // can't inline this because it cannot be accessed safely from another thread
+            var observable = Tune.WaveformStream();
+            var steps = Math.Min(resolution, 1000);
+            _waveformBuildDisposable = observable.ObserveOn(_uiContext)
+                .Buffer(steps)
+                .Subscribe(e => renderWaveform.DrawWaveform(e.ToArray()),
+                    renderWaveform.CompleteWaveform);
             Task.Run(() => observable.Waveform(resolution));
         }
 
@@ -462,7 +465,8 @@ namespace WaveformTimeline.Controls.Waveform
         private void OnBackgroundRenderingCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             var args = (BackgroundRenderingArgs) e.Result;
-            RenderProgressively(args.Section, args.RenderWaveform);
+            args.RenderWaveform.DrawWaveform(CreateFloats(Tune.WaveformData()));
+            //RenderProgressively(args.Section, args.RenderWaveform);
         }
 
         private class BackgroundRenderingArgs
