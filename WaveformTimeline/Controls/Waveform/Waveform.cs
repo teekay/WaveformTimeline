@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -43,6 +44,8 @@ namespace WaveformTimeline.Controls.Waveform
         private readonly List<Line> _rightSideOffsetDashes = new List<Line>();
         private IDisposable _waveformBuildDisposable;
         private RenderedToDimensions _lastRenderedToDimensions;
+        private BackgroundWorker _renderingInBackground;
+        //private BlockingCollection<float> _waveformDatapump;
 
         private class RenderedToDimensions
         {
@@ -229,6 +232,16 @@ namespace WaveformTimeline.Controls.Waveform
             set => SetValue(AutoScaleWaveformCacheProperty, value);
         }
 
+        public static readonly DependencyProperty ProgressiveRenderingProperty = DependencyProperty.Register(
+            "ProgressiveRendering", typeof(bool), typeof(Waveform), 
+            new PropertyMetadata(true));
+
+        public bool ProgressiveRendering
+        {
+            get => (bool) GetValue(ProgressiveRenderingProperty);
+            set => SetValue(ProgressiveRenderingProperty, value);
+        }
+
         private IEnumerable<DependencyObject> ThisAndParentsOf(DependencyObject element)
         {
             if (element == null) return new List<DependencyObject>();
@@ -352,8 +365,17 @@ namespace WaveformTimeline.Controls.Waveform
         private bool ShouldRedraw() => MainCanvas != null && ( 
                                        _lastRenderedToDimensions == null ||
                                        Tune.Name() != _lastRenderedToDimensions.Tune.Name() ||
-                                       Tune.TotalTime() != _lastRenderedToDimensions.Tune.TotalTime() ||
-                                       !_waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions));
+                                       !AreTuneTimesSame() ||
+                                       !AreDimensionsSame());
+
+        private bool AreTuneTimesSame()
+        {
+            var time1 = Tune.TotalTime();
+            var time2 = _lastRenderedToDimensions.Tune.TotalTime();
+            return time1 == time2;
+        }
+
+        private bool AreDimensionsSame() => _waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions);
 
         /// <summary>
         /// Show the waveform
@@ -363,16 +385,25 @@ namespace WaveformTimeline.Controls.Waveform
             MeasureArea();
             if (!ShouldRedraw()) return;
             Clear();
+            var (leftWaveformPolyLine, rightWaveformPolyLine) = PreparedDrawingArea();
             var section = new WaveformSection(_coverageArea, Tune, WaveformResolution);
+            var renderWaveform = new WaveformRenderingProgress(_waveformDimensions, section, MainCanvas, leftWaveformPolyLine, rightWaveformPolyLine);
+            Action<WaveformSection, WaveformRenderingProgress> renderingMethod = ProgressiveRendering 
+                ? (Action<WaveformSection, WaveformRenderingProgress>)RenderProgressively 
+                : BackgroundReadThenRender;
+            renderingMethod(section, renderWaveform);
+            _lastRenderedToDimensions = new RenderedToDimensions(Tune, _waveformDimensions);
+        }
+
+        private (PolyLineSegment, PolyLineSegment) PreparedDrawingArea()
+        {
             var centerHeight = MainCanvas.RenderSize.Height / 2.0d;
-            var waveformFloats = CreateFloats(Tune.WaveformData());
             var availableWidth = MainCanvas.RenderSize.Width - _waveformDimensions.RightMargin();
             var leftWaveformPolyLine = new PolyLineSegment();
             var rightWaveformPolyLine = new PolyLineSegment();
             Point StartPoint() => new Point(_waveformDimensions.LeftMargin(), centerHeight);
             _leftPath.Data = new PathGeometry(new[] { new PathFigure(StartPoint(), new[] { leftWaveformPolyLine }, false) });
             _rightPath.Data = new PathGeometry(new[] { new PathFigure(StartPoint(), new[] { rightWaveformPolyLine }, false) });
-            var renderWaveform = new WaveformRenderingProgress(_waveformDimensions, section, MainCanvas, leftWaveformPolyLine, rightWaveformPolyLine);
             _centerLine.X1 = _waveformDimensions.LeftMargin();
             _centerLine.X2 = availableWidth;
             var halfHeight = MainCanvas.RenderSize.Height / 2.0d;
@@ -381,7 +412,6 @@ namespace WaveformTimeline.Controls.Waveform
             MainCanvas.Children.Add(_leftPath);
             MainCanvas.Children.Add(_rightPath);
             MainCanvas.Children.Add(_centerLine);
-
             // The following section adds an empty space before the beginning of the waveform with leading dashes
             if (Tune.TotalTime().TotalSeconds > 0)
             {
@@ -389,17 +419,69 @@ namespace WaveformTimeline.Controls.Waveform
                 if (_coverageArea.Includes(1.0))
                     CreateDashedPadding(availableWidth, _waveformDimensions.RightMargin(), _rightSideOffsetDashes);
             }
-            var observable = waveformFloats.Length > 0
-                             ? new CachedWaveformObservable(waveformFloats, section)
-                             : Tune.WaveformStream();
-            _waveformBuildDisposable = observable.ObserveOn(_uiContext)
-                .Buffer(20)
-                .Subscribe(
-                    renderWaveform.DrawWfPointByPoint,
-                    renderWaveform.CompleteWaveform);
+            return (leftWaveformPolyLine, rightWaveformPolyLine);
+        }
+
+        private void RenderProgressively(WaveformSection section, WaveformRenderingProgress renderWaveform)
+        {
+            var waveformFloats = CreateFloats(Tune.WaveformData());
+            if (waveformFloats.Length > 0)
+            {
+                renderWaveform.DrawWaveform(waveformFloats);
+                return;
+            }
             var resolution = WaveformResolution; // can't inline this because it cannot be accessed safely from another thread
+            var observable = Tune.WaveformStream();
+            var steps = Math.Min(resolution, 1000);
+            _waveformBuildDisposable = observable.ObserveOn(_uiContext)
+                .Buffer(steps)
+                .Subscribe(e => renderWaveform.DrawWaveform(e.ToArray()),
+                    renderWaveform.CompleteWaveform);
             Task.Run(() => observable.Waveform(resolution));
-            _lastRenderedToDimensions = new RenderedToDimensions(Tune, _waveformDimensions);
+        }
+
+        private void BackgroundReadThenRender(WaveformSection section, WaveformRenderingProgress renderWaveform)
+        {
+            var waveformFloats = CreateFloats(Tune.WaveformData());
+            if (waveformFloats.Length > 0)
+            {
+                RenderProgressively(section, renderWaveform);
+                return;
+            }
+            _renderingInBackground = new BackgroundWorker();
+            _renderingInBackground.DoWork += ReadWaveformInBackground;
+            _renderingInBackground.RunWorkerCompleted += OnBackgroundRenderingCompleted;
+            _renderingInBackground.RunWorkerAsync(
+                    new BackgroundRenderingArgs(Tune, section, renderWaveform, WaveformResolution));
+        }
+
+        private void ReadWaveformInBackground(object sender, DoWorkEventArgs e)
+        {
+            var args = (BackgroundRenderingArgs)e.Argument;
+            args.Tune.WaveformStream().Waveform(args.Resolution);
+            e.Result = args;
+        }
+
+        private void OnBackgroundRenderingCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            var args = (BackgroundRenderingArgs) e.Result;
+            args.RenderWaveform.DrawWaveform(CreateFloats(Tune.WaveformData()));
+            //RenderProgressively(args.Section, args.RenderWaveform);
+        }
+
+        private class BackgroundRenderingArgs
+        {
+            public BackgroundRenderingArgs(ITune tune, WaveformSection section, WaveformRenderingProgress renderWaveform, int resolution)
+            {
+                Tune = tune;
+                Section = section;
+                RenderWaveform = renderWaveform;
+                Resolution = resolution;
+            }
+            public ITune Tune { get; }
+            public int Resolution { get; }
+            public WaveformSection Section { get; }
+            public WaveformRenderingProgress RenderWaveform { get; }
         }
 
         private Line DrawDash(int i, double centerPos, double startPos, int dashSize, int inInBetweenDashesSpace)
@@ -429,11 +511,12 @@ namespace WaveformTimeline.Controls.Waveform
             var centerPos = MainCanvas.RenderSize.Height / 2;
             var lines = Enumerable.Range(0, dashCount)
                 .Select(i => DrawDash(i, centerPos, startPos, dashSize, inInBetweenDashesSpace));
-            lines.ForEach(dash =>
+            void AddDash(Line dash)
             {
                 dashes.Add(dash);
                 MainCanvas.Children.Add(dash);
-            });
+            }
+            lines.ForEach(AddDash);
         }
 
         public void Clear()

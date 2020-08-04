@@ -31,7 +31,11 @@ namespace WaveformTimeline.Controls
         public ITune Tune
         {
             get => (ITune)GetValue(TuneProperty) ?? new NoTune(); // no null acceptable
-            set => SetValue(TuneProperty, value ?? new NoTune());
+            set
+            {
+                (Tune as IDisposable)?.Dispose(); // TODO revisit this, ITune does not include IDisposable
+                SetValue(TuneProperty, value ?? new NoTune());
+            }
         }
 
         public static readonly DependencyProperty ZoomProperty = DependencyProperty.Register(
