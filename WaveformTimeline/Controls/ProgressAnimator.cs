@@ -180,8 +180,7 @@ namespace WaveformTimeline.Controls
             MainCanvas.Children.Add(_progressRect);
             _progressRect.Stroke = _transparentBrush;
             _progressRect.StrokeThickness = 0d;
-            _progressRect.Fill = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-            _progressRect.Opacity = 0.4;
+            _progressRect.Fill = new SolidColorBrush(Color.FromRgb(0, 0, 0)) { Opacity = 0.4 };
             ControlProgressAnimation(EventArgs.Empty);
         }
 

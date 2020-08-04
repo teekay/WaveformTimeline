@@ -39,7 +39,7 @@ namespace WaveformTimelineDemo
             {
                 DefaultExt = ".mp3",
                 Multiselect = false,
-                Filter = "Audio files|*.wav;*.mp3;*.m4a"
+                Filter = "Audio files|*.wav;*.mp3;*.m4a;*.flac"
             };
 
             bool? result = dlg.ShowDialog();
