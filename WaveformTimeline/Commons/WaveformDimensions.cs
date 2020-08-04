@@ -9,7 +9,7 @@ namespace WaveformTimeline.Commons
     /// Encapsulates significant facts about the waveform control's dimensions
     /// </summary>
     [DebuggerDisplay("{CompleteWidth}/{RenderedWidth} - {LeftPadding}/{RightPadding} - {StartsAtPx}")]
-    public struct WaveformDimensions
+    public readonly struct WaveformDimensions
     {
         public WaveformDimensions(TuneDuration coverageArea, double canvasWidth)
             : this(coverageArea, canvasWidth,

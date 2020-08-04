@@ -114,7 +114,7 @@
                             <RowDefinition Height="20"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Canvas Name="PART_Triangle"
+                        <Canvas Name="PART_Spacer"
                                 Grid.Row="0"
                                 ClipToBounds="True"/>
                         <Canvas Name="PART_ProgressLine"
