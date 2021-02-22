@@ -32,13 +32,15 @@
                                          CueBarBackgroundBrush="Black"
                                          ProgressBarBrush="Red"
                                          ProgressBarThickness="2"
+                                         LeftLevelBrush="DimGray"
+                                         RightLevelBrush="DimGray"
                                          AllowRepositioning="True"
                                          Width="Auto"
                                          Height="120"
                                          Zoom="1"
                                          WaveformResolution="8000"
                                          TimelineType="Constant"
-                                         ProgressiveRendering="True"/>
+                                         ProgressiveRendering="False"/>
 
       <Grid Margin="5">
         <Grid.ColumnDefinitions>

@@ -388,7 +388,7 @@ namespace WaveformTimeline.Controls.Waveform
             var (leftWaveformPolyLine, rightWaveformPolyLine) = PreparedDrawingArea();
             var section = new WaveformSection(_coverageArea, Tune, WaveformResolution);
             var renderWaveform = new WaveformRenderingProgress(_waveformDimensions, section, MainCanvas, leftWaveformPolyLine, rightWaveformPolyLine);
-            Action<WaveformSection, WaveformRenderingProgress> renderingMethod = ProgressiveRendering 
+            var renderingMethod = ProgressiveRendering 
                 ? (Action<WaveformSection, WaveformRenderingProgress>)RenderProgressively 
                 : BackgroundReadThenRender;
             renderingMethod(section, renderWaveform);
@@ -445,7 +445,7 @@ namespace WaveformTimeline.Controls.Waveform
             var waveformFloats = CreateFloats(Tune.WaveformData());
             if (waveformFloats.Length > 0)
             {
-                RenderProgressively(section, renderWaveform);
+                RenderWaveformSync(renderWaveform, waveformFloats);
                 return;
             }
             _renderingInBackground = new BackgroundWorker();
@@ -453,6 +453,12 @@ namespace WaveformTimeline.Controls.Waveform
             _renderingInBackground.RunWorkerCompleted += OnBackgroundRenderingCompleted;
             _renderingInBackground.RunWorkerAsync(
                     new BackgroundRenderingArgs(Tune, section, renderWaveform, WaveformResolution));
+        }
+
+        private static void RenderWaveformSync(WaveformRenderingProgress renderWaveform, float[] waveformFloats)
+        {
+            renderWaveform.DrawWaveform(waveformFloats);
+            renderWaveform.CompleteWaveform();
         }
 
         private void ReadWaveformInBackground(object sender, DoWorkEventArgs e)
@@ -465,8 +471,7 @@ namespace WaveformTimeline.Controls.Waveform
         private void OnBackgroundRenderingCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             var args = (BackgroundRenderingArgs) e.Result;
-            args.RenderWaveform.DrawWaveform(CreateFloats(Tune.WaveformData()));
-            //RenderProgressively(args.Section, args.RenderWaveform);
+            RenderWaveformSync(args.RenderWaveform, CreateFloats(Tune.WaveformData()));
         }
 
         private class BackgroundRenderingArgs
