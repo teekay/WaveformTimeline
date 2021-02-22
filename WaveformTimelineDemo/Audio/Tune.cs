@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Concurrent;
 using WaveformTimeline.Contracts;
 using WaveformTimelineDemo.Toolbox;
@@ -19,7 +20,7 @@ namespace WaveformTimelineDemo.Audio
         private readonly IPlayer _player;
         private readonly ConcurrentQueue<float> _waveformFloats = new ConcurrentQueue<float>();
         private byte[] _waveformBytes = new byte[0];
-        private IDisposable _waveformUpdated;
+        private IDisposable? _waveformUpdated;
 
         public bool IsPlaying() => _player.IsPlaying();
 
@@ -57,7 +58,7 @@ namespace WaveformTimelineDemo.Audio
 
         public TimeSpan Duration() => _player.TotalTime();
 
-        public string Name() => _meta?.Title() ?? string.Empty;
+        public string Name() => _meta.Title() ?? string.Empty;
 
         public byte[] WaveformData() => _waveformBytes;
 
@@ -76,7 +77,7 @@ namespace WaveformTimelineDemo.Audio
         {
             var wfarr = _waveformFloats.ToArray();
             FillInWaveformData(wfarr);
-            _waveformUpdated.Dispose();
+            _waveformUpdated?.Dispose();
         }
 
         private void FillInWaveformData(float[] waveformFloats)
@@ -100,7 +101,8 @@ namespace WaveformTimelineDemo.Audio
             // not implemented in this demo
         }
 
-        public event EventHandler<EventArgs> Transitioned;
-        public event EventHandler<EventArgs> TempoShifted;
+        public event EventHandler<EventArgs>? Transitioned;
+        public event EventHandler<EventArgs>? TempoShifted;
+        public event EventHandler<EventArgs>? CuesChanged;
     }
 }

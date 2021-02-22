@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace WaveformTimeline.Contracts
 {
@@ -63,11 +64,16 @@ namespace WaveformTimeline.Contracts
         /// The client ought to raise this event whenever something important happens to playback (start, pause, unpause, stop) - anything
         /// that could change the values of: PlaybackOn(), CurrentTime(), TotalTime().
         /// </summary>
-        event EventHandler<EventArgs> Transitioned;
+        event EventHandler<EventArgs>? Transitioned;
 
         /// <summary>
         /// The client ought to raise this event whenever the value of Tempo() might change.
         /// </summary>
-        event EventHandler<EventArgs> TempoShifted;
+        event EventHandler<EventArgs>? TempoShifted;
+
+        /// <summary>
+        /// Raise this event when the start / end cues change in the background as opposed by the user on the UI
+        /// </summary>
+        event EventHandler<EventArgs>? CuesChanged;
     }
 }
