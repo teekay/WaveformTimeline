@@ -9,20 +9,16 @@ This can be useful to you when you develop WPF apps that deal with audio.
 WaveformTimeline control built for your convenience.
 
 # Dependencies
-* .NET Framework version 4.6.1 or above
+* .NET 5
 * JetBrains.Annotations 2018.2.1
-* Microsoft.CSharp 4.5.0
-* morelinq 3.0.0
-* System.Reactive 4.1.0
-* System.Reactive.Linq 4.1.0
-* System.Runtime.CompilerServices.Unsafe 4.5.0
-* System.Threading.Tasks.Extensions 4.5.1
-* System.ValueTuple 4.5.0
+* morelinq 3.3.2
+* System.Reactive 4.4.1
+* System.Reactive.Linq 4.4.1
 
 # License
 The MIT License (MIT)
 
-Copyright (c) 2011-2019 Jacob Johnston, Tomáš Kohl
+Copyright (c) 2011-2021 Jacob Johnston, Tomáš Kohl
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
