@@ -1,7 +1,11 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,20 +31,21 @@ namespace WaveformTimeline.Controls
      TemplatePart(Name = "PART_CueMarks", Type = typeof(Canvas))]
     internal sealed class Curtains: BaseControl
     {
-        private Canvas _cueMarksCanvas;
-        private Canvas _leftSideCurtain;
-        private Canvas _rightSideCurtain;
-        private readonly List<ZeroToOne> _cuePoints = new List<ZeroToOne>();
-        private readonly List<Shape> _cuePointMarks = new List<Shape>();
-        private readonly List<Line> _cuePointLines = new List<Line>();
+        private Canvas? _cueMarksCanvas;
+        private Canvas? _leftSideCurtain;
+        private Canvas? _rightSideCurtain;
+        private readonly List<ZeroToOne> _cuePoints = new();
+        private readonly List<Shape> _cuePointMarks = new();
+        private readonly List<Line> _cuePointLines = new();
         private readonly Brush _transparentBrush = new SolidColorBrush { Color = Color.FromScRgb(0, 0, 0, 0), Opacity = 0 };
-        private readonly Dictionary<double, Shape> _cueMap = new Dictionary<double, Shape>();
+        private readonly Dictionary<double, Shape> _cueMap = new();
         private ZeroToOne _selectedCuePoint;
-        private Shape _selectedCuePointMark;
-        private Line _selectedCuePointLine;
+        private Shape? _selectedCuePointMark;
+        private Line? _selectedCuePointLine;
         private double _lastKnownGoodX;
-        private Canvas _animatedCurtain;
+        private Canvas? _animatedCurtain;
         private bool _isMouseDown;
+        private IDisposable? _watchesCues;
 
         /// <summary>
         /// Identifies the <see cref="CueMarkBrush" /> dependency property. 
@@ -173,8 +178,28 @@ namespace WaveformTimeline.Controls
 
         protected override void OnTuneChanged()
         {
+            _watchesCues?.Dispose();
+            _watchesCues = Observable.FromEventPattern<EventArgs>(
+                    ev => Tune.CuesChanged += ev,
+                    ev => Tune.CuesChanged -= ev)
+                .Subscribe(TuneOnCuesChanged);
+            TuneOnCuesChanged();
+        }
+
+        private void TuneOnCuesChanged(EventPattern<EventArgs>? obj = null)
+        {
+            var newCues = Tune.Cues().Select(d => new ZeroToOne(new FiniteDouble(d))).ToList();
+            if (newCues.Count == 0 || 
+                (_cuePoints.Count > 0 &&
+                 newCues.Intersect(_cuePoints).Count() == _cuePoints.Count))
+            {
+                // no change
+                Debug.WriteLine($"No change in cues, have {_cuePoints.Count}");
+                return;
+            }
+            Debug.WriteLine($"Adding new cues {newCues[0]}, {newCues[1]}");
             _cuePoints.Clear();
-            _cuePoints.AddRange(Tune.Cues().Select(d =>new ZeroToOne(new FiniteDouble(d))));
+            _cuePoints.AddRange(newCues);
             Render();
         }
 
@@ -210,7 +235,7 @@ namespace WaveformTimeline.Controls
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            if (!_isMouseDown) return;
+            if (!_isMouseDown || _cueMarksCanvas == null) return;
             var currentPoint = e.GetPosition(MainCanvas);
             /* sanitization */
             if (currentPoint.X < _waveformDimensions.LeftMargin())
@@ -250,7 +275,7 @@ namespace WaveformTimeline.Controls
         {
             Clear();
             MeasureArea();
-            if (!ShowCueMarks || _cuePoints.Count == 0 || _leftSideCurtain == null || _rightSideCurtain == null || MainCanvas == null || _waveformDimensions.AreEmpty()) return;
+            if (!ShowCueMarks || _cuePoints.Count == 0 || _leftSideCurtain == null || _rightSideCurtain == null || MainCanvas == null || _cueMarksCanvas == null || _waveformDimensions.AreEmpty()) return;
 
             double minCuePoint = Math.Max(_cuePoints.Min(), 0);
             if (_coverageArea.Includes(minCuePoint))
@@ -262,7 +287,7 @@ namespace WaveformTimeline.Controls
             double maxCuePoint = _cuePoints.Count == 1 ? 1 : Math.Min(_cuePoints.Max(), 1);
             if (_coverageArea.Includes(maxCuePoint))
             {
-                double rightSideCurtainLeftX =  _waveformDimensions.LeftMargin() + _waveformDimensions.AbsoluteLocationToRendered(_waveformDimensions.PositionOnCompleteWaveform((ZeroToOne) maxCuePoint));
+                double rightSideCurtainLeftX =  _waveformDimensions.LeftMargin() + _waveformDimensions.AbsoluteLocationToRendered(_waveformDimensions.PositionOnCompleteWaveform(maxCuePoint));
                 double rightSideCurtainRightX = _waveformDimensions.LeftMargin() + _waveformDimensions.Width();
                 _rightSideCurtain.Width = Math.Max(0,
                     (rightSideCurtainRightX - rightSideCurtainLeftX));
@@ -279,6 +304,7 @@ namespace WaveformTimeline.Controls
 
         private void AddCurtain((Line Line, Polygon Polygon) t)
         {
+            if (_cueMarksCanvas == null) return;
             _cuePointLines.Add(t.Line);
             MainCanvas.Children.Add(t.Line);
             _cuePointMarks.Add(t.Polygon);
@@ -287,19 +313,19 @@ namespace WaveformTimeline.Controls
 
         private Polygon DrawPolygon(double cp, double xLocation, double centerOffset)
         {
-            Polygon cue = new Polygon
+            Polygon cue = new()
             {
                 Points = new PointCollection
                 {
                     new Point(xLocation, 0), // top
-                    new Point(xLocation - centerOffset, _cueMarksCanvas.RenderSize.Height / 2), // left middle
+                    new Point(xLocation - centerOffset, _cueMarksCanvas!.RenderSize.Height / 2), // left middle
                     new Point(xLocation - centerOffset, _cueMarksCanvas.RenderSize.Height), // left bottom
                     new Point(xLocation + centerOffset, _cueMarksCanvas.RenderSize.Height),  // right
                     new Point(xLocation + centerOffset, _cueMarksCanvas.RenderSize.Height / 2)  // right
                 }
             };
-            Style cueStyle = (Style)Application.Current.FindResource("CueMarkPolygonStyle");
-            Style invisibleCueStyle = (Style)Application.Current.FindResource("InvisibleCueMarkPolygonStyle");
+            var cueStyle = Application.Current.FindResource("CueMarkPolygonStyle") as Style;
+            var invisibleCueStyle = Application.Current.FindResource("InvisibleCueMarkPolygonStyle") as Style;
             cue.Style = _coverageArea.Includes(cp) ? cueStyle : invisibleCueStyle;
             return cue;
         }
@@ -319,7 +345,7 @@ namespace WaveformTimeline.Controls
 
         public void Clear()
         {
-            _cuePointMarks.ForEach(mark => _cueMarksCanvas.Children.Remove(mark));
+            _cuePointMarks.ForEach(mark => _cueMarksCanvas?.Children.Remove(mark));
             _cuePointMarks.Clear();
             _cuePointLines.ForEach(line => MainCanvas.Children.Remove(line));
             _cuePointLines.Clear();
@@ -365,6 +391,10 @@ namespace WaveformTimeline.Controls
 
         private void MoveCuePoint(Point currentPoint, double leftCorner, double rightCorner)
         {
+            Debug.Assert(_cueMarksCanvas != null);
+            Debug.Assert(_selectedCuePointLine != null);
+            Debug.Assert(_leftSideCurtain != null);
+            Debug.Assert(_rightSideCurtain != null);
             if (_selectedCuePointMark == null) return;
             _lastKnownGoodX = currentPoint.X;
             ((Polygon) _selectedCuePointMark).Points = new PointCollection()

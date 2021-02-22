@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Reactive.Disposables;
 using WaveformTimeline.Contracts;
 
@@ -64,8 +65,9 @@ namespace WaveformTimelineDemo.Audio
         {
         }
 
-        public event EventHandler<EventArgs> Transitioned;
-        public event EventHandler<EventArgs> TempoShifted;
+        public event EventHandler<EventArgs>? Transitioned;
+        public event EventHandler<EventArgs>? TempoShifted;
+        public event EventHandler<EventArgs>? CuesChanged;
 
         private class DummyWaveformObservable : IAudioWaveformStream
         {

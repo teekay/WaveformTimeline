@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Reactive.Disposables;
 using WaveformTimeline.Contracts;
 
@@ -24,7 +25,7 @@ namespace WaveformTimeline.Commons
 
         public TimeSpan CurrentTime() => TimeSpan.Zero;
 
-        public TimeSpan TotalTime() => TimeSpan.Zero;
+        public TimeSpan TotalTime() => TimeSpan.FromSeconds(_durationInSeconds);
 
         public TimeSpan Duration() => TotalTime();
 
@@ -55,8 +56,9 @@ namespace WaveformTimeline.Commons
             //no-op   
         }
 
-        public event EventHandler<EventArgs> Transitioned;
-        public event EventHandler<EventArgs> TempoShifted;
+        public event EventHandler<EventArgs>? Transitioned;
+        public event EventHandler<EventArgs>? TempoShifted;
+        public event EventHandler<EventArgs>? CuesChanged;
 
         private class DummyWaveformObservable : IAudioWaveformStream
         {
