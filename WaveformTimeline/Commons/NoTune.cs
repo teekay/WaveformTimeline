@@ -35,7 +35,7 @@ namespace WaveformTimeline.Commons
             return new DummyWaveformObservable();
         }
 
-        public double[] Cues() => new double[0];
+        public double[] Cues() => new double[] {0, 1};
 
         public double Tempo() => 100;
 

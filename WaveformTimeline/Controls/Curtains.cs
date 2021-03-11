@@ -194,10 +194,8 @@ namespace WaveformTimeline.Controls
                  newCues.Intersect(_cuePoints).Count() == _cuePoints.Count))
             {
                 // no change
-                Debug.WriteLine($"No change in cues, have {_cuePoints.Count}");
                 return;
             }
-            Debug.WriteLine($"Adding new cues {newCues[0]}, {newCues[1]}");
             _cuePoints.Clear();
             _cuePoints.AddRange(newCues);
             Render();
