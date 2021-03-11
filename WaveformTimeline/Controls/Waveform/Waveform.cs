@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -308,7 +307,10 @@ namespace WaveformTimeline.Controls.Waveform
         }
 
 
-        protected override void OnTuneChanged() => _redrawObservable.Increment();
+        protected override void OnTuneChanged()
+        {
+            _redrawObservable.Increment();
+        }
 
         public override void OnApplyTemplate()
         {
@@ -335,9 +337,9 @@ namespace WaveformTimeline.Controls.Waveform
             var context = SynchronizationContext.Current;
             if (context != null && _redrawDisposable == null)
             {
-                _redrawDisposable = _redrawObservable.Throttle(TimeSpan.FromMilliseconds(100))
+                _redrawDisposable = _redrawObservable.Sample(TimeSpan.FromMilliseconds(100))
                     .ObserveOn(context)
-                    .Subscribe(i => Render());
+                    .Subscribe(_ => Render());
             }
         }
 
@@ -362,20 +364,21 @@ namespace WaveformTimeline.Controls.Waveform
             return floats;
         }
 
-        private bool ShouldRedraw() => MainCanvas != null && ( 
-                                       _lastRenderedToDimensions == null ||
-                                       Tune.Name() != _lastRenderedToDimensions.Tune.Name() ||
-                                       !AreTuneTimesSame() ||
-                                       !AreDimensionsSame());
-
-        private bool AreTuneTimesSame()
+        private bool ShouldRedraw()
         {
-            var time1 = Tune.TotalTime();
-            var time2 = _lastRenderedToDimensions.Tune.TotalTime();
-            return time1 == time2;
+            if (MainCanvas == null ||
+                (_lastRenderedToDimensions != null &&
+                (AreTunesTheSame() && AreDimensionsSame()))) return false;
+            return true;
         }
 
-        private bool AreDimensionsSame() => _waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions);
+        private bool AreTunesTheSame() => Tune.Name() == _lastRenderedToDimensions.Tune.Name();
+
+        private bool AreDimensionsSame()
+        {
+            var cmp = _waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions);
+            return cmp;
+        }
 
         /// <summary>
         /// Show the waveform
@@ -452,10 +455,10 @@ namespace WaveformTimeline.Controls.Waveform
             _renderingInBackground.DoWork += ReadWaveformInBackground;
             _renderingInBackground.RunWorkerCompleted += OnBackgroundRenderingCompleted;
             _renderingInBackground.RunWorkerAsync(
-                    new BackgroundRenderingArgs(Tune, section, renderWaveform, WaveformResolution));
+                    new BackgroundRenderingArgs(Tune, renderWaveform, WaveformResolution));
         }
 
-        private static void RenderWaveformSync(WaveformRenderingProgress renderWaveform, float[] waveformFloats)
+        private void RenderWaveformSync(WaveformRenderingProgress renderWaveform, float[] waveformFloats)
         {
             renderWaveform.DrawWaveform(waveformFloats);
             renderWaveform.CompleteWaveform();
@@ -464,28 +467,26 @@ namespace WaveformTimeline.Controls.Waveform
         private void ReadWaveformInBackground(object sender, DoWorkEventArgs e)
         {
             var args = (BackgroundRenderingArgs)e.Argument;
-            args.Tune.WaveformStream().Waveform(args.Resolution);
+            args!.Tune.WaveformStream().Waveform(args.Resolution);
             e.Result = args;
         }
 
         private void OnBackgroundRenderingCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             var args = (BackgroundRenderingArgs) e.Result;
-            RenderWaveformSync(args.RenderWaveform, CreateFloats(Tune.WaveformData()));
+            RenderWaveformSync(args!.RenderWaveform, CreateFloats(Tune.WaveformData()));
         }
 
         private class BackgroundRenderingArgs
         {
-            public BackgroundRenderingArgs(ITune tune, WaveformSection section, WaveformRenderingProgress renderWaveform, int resolution)
+            public BackgroundRenderingArgs(ITune tune, WaveformRenderingProgress renderWaveform, int resolution)
             {
                 Tune = tune;
-                Section = section;
                 RenderWaveform = renderWaveform;
                 Resolution = resolution;
             }
             public ITune Tune { get; }
             public int Resolution { get; }
-            public WaveformSection Section { get; }
             public WaveformRenderingProgress RenderWaveform { get; }
         }
 
