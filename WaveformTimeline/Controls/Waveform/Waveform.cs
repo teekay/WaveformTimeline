@@ -473,8 +473,8 @@ namespace WaveformTimeline.Controls.Waveform
 
         private void OnBackgroundRenderingCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            var args = (BackgroundRenderingArgs) e.Result;
-            RenderWaveformSync(args!.RenderWaveform, CreateFloats(Tune.WaveformData()));
+            if (e.Error != null || !(e.Result is BackgroundRenderingArgs args)) return;
+            RenderWaveformSync(args.RenderWaveform, CreateFloats(Tune.WaveformData()));
         }
 
         private class BackgroundRenderingArgs
