@@ -374,11 +374,7 @@ namespace WaveformTimeline.Controls.Waveform
 
         private bool AreTunesTheSame() => Tune.Name() == _lastRenderedToDimensions.Tune.Name();
 
-        private bool AreDimensionsSame()
-        {
-            var cmp = _waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions);
-            return cmp;
-        }
+        private bool AreDimensionsSame() => _waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions);
 
         /// <summary>
         /// Show the waveform

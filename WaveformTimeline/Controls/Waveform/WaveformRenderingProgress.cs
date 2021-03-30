@@ -42,10 +42,6 @@ namespace WaveformTimeline.Controls.Waveform
 
         public void CompleteWaveform()
         {
-            _leftWaveformPolyLine.Points.Add(new Point(_xLocation, _height));
-            _leftWaveformPolyLine.Points.Add(new Point(_leftMargin, _height));
-            _rightWaveformPolyLine.Points.Add(new Point(_xLocation, _height));
-            _rightWaveformPolyLine.Points.Add(new Point(_leftMargin, _height));
             _leftWaveformPolyLine.Freeze();
             _rightWaveformPolyLine.Freeze();
         }

@@ -292,12 +292,20 @@ namespace WaveformTimeline.Controls
                 _rightSideCurtain.Margin = new Thickness(0, 0, _waveformDimensions.RightMargin(), 0);
             }
 
-            _cuePoints.Select(cue => (Cue: cue, Location: 
-                    new FiniteDouble(_waveformDimensions.LeftMargin() + _waveformDimensions.PositionOnCompleteWaveform(cue))))
-                .Select(t => (Cue: t.Cue, Location:
-                    new FiniteDouble(_waveformDimensions.AbsoluteLocationToRendered(t.Location))))
-                .Select(t => (Line: DrawLine(t.Cue, t.Location), Polygon: DrawPolygon(t.Cue, t.Location, _cueMarksCanvas.RenderSize.Height / 2.5d)))
-                .ForEach(AddCurtain);
+            var curtains = _cuePoints
+                .Select(cue => (
+                    Cue: cue, 
+                    Location: 
+                        new FiniteDouble(
+                            _waveformDimensions.LeftMargin() + _waveformDimensions.PositionOnCompleteWaveform(cue))))
+                .Select(t => (
+                    t.Cue,
+                    Location:
+                        new FiniteDouble(_waveformDimensions.AbsoluteLocationToRendered(t.Location))))
+                .Select(t => (
+                    Line: CueLine(t.Cue, t.Location),
+                    Polygon: CueHandle(t.Cue, t.Location, _cueMarksCanvas.RenderSize.Height / 2)));
+            curtains.ForEach(AddCurtain);
         }
 
         private void AddCurtain((Line Line, Polygon Polygon) t)
@@ -309,7 +317,7 @@ namespace WaveformTimeline.Controls
             _cueMarksCanvas.Children.Add(t.Polygon);
         }
 
-        private Polygon DrawPolygon(double cp, double xLocation, double centerOffset)
+        private Polygon CueHandle(double cp, double xLocation, double centerOffset)
         {
             Polygon cue = new()
             {
@@ -328,7 +336,7 @@ namespace WaveformTimeline.Controls
             return cue;
         }
 
-        private Line DrawLine(double cp, double xLocation)
+        private Line CueLine(double cp, double xLocation)
         {
             return new Line
             {

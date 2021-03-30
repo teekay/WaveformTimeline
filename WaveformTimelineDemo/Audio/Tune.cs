@@ -85,7 +85,7 @@ namespace WaveformTimelineDemo.Audio
             _waveformBytes = new FloatsAsBytes(waveformFloats).Bytes();
         }
 
-        public double[] Cues() => new double[] {0, 1};
+        public double[] Cues() => new double[] { 0, 1 };
 
         public double Tempo() => 100;
 

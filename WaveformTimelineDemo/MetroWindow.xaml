@@ -30,6 +30,8 @@
       <waveformTimeline:WaveformTimeline DataContext="{Binding}"
                                          Tune="{Binding Tune}"
                                          CueBarBackgroundBrush="Black"
+                                         CueMarkBrush="AliceBlue"
+                                         ShowCueMarks="True"
                                          ProgressBarBrush="Red"
                                          ProgressBarThickness="2"
                                          LeftLevelBrush="DimGray"
@@ -38,7 +40,7 @@
                                          Width="Auto"
                                          Height="120"
                                          Zoom="1"
-                                         WaveformResolution="8000"
+                                         WaveformResolution="2000"
                                          TimelineType="Constant"
                                          ProgressiveRendering="False"/>
 

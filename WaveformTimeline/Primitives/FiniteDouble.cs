@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace WaveformTimeline.Primitives
 {
@@ -50,5 +51,7 @@ namespace WaveformTimeline.Primitives
         {
             return Value().GetHashCode();
         }
+
+        public override string ToString() => Value().ToString(CultureInfo.InvariantCulture);
     }
 }

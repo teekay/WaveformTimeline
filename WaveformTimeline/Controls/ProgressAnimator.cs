@@ -175,7 +175,7 @@ namespace WaveformTimeline.Controls
                 .ObserveOn(uiContext)
                 .Subscribe(AlterProgressAnimationSpeed);
             _progressRect.Margin = new Thickness(_waveformDimensions.LeftMargin(), 0, 0, 0);
-            _progressRect.Width = 2;
+            _progressRect.Width = 0;
             _progressRect.Height = MainCanvas.RenderSize.Height;
             MainCanvas.Children.Add(_progressRect);
             _progressRect.Stroke = _transparentBrush;
