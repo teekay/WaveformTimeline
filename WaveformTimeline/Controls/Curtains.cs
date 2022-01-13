@@ -262,11 +262,22 @@ namespace WaveformTimeline.Controls
         protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonUp(e);
+            FinishCurtainMovement(e.GetPosition(MainCanvas).X);
+        }
+
+        private void FinishCurtainMovement(double xPosition)
+        {
             //ReleaseMouseCapture();
             if (!_isMouseDown || !EnableCueMarksRepositioning) return;
             _isMouseDown = false;
             MeasureArea();
-            CurtainMoved(_waveformDimensions.PercentOfCompleteWaveform(e.GetPosition(MainCanvas).X));
+            CurtainMoved(_waveformDimensions.PercentOfCompleteWaveform(xPosition));
+        }
+
+        protected override void OnMouseLeave(MouseEventArgs e)
+        {
+            base.OnMouseLeave(e);
+            FinishCurtainMovement(e.GetPosition(MainCanvas).X);
         }
 
         protected override void Render()

@@ -71,5 +71,20 @@ namespace WaveformTimeline.Commons
             {                   
             }
         }
+
+        private void OnTransitioned()
+        {
+            Transitioned?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnTempoShifted()
+        {
+            TempoShifted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnCuesChanged()
+        {
+            CuesChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

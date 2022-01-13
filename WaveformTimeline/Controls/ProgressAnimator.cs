@@ -26,7 +26,7 @@ namespace WaveformTimeline.Controls
         private readonly Storyboard _trackProgressAnimationBoard = new Storyboard();
         private readonly Rectangle _progressRect = new Rectangle();
         private readonly Rectangle _captureMouse = new Rectangle();
-        private readonly double _indicatorWidth = 6;
+        //private readonly double _indicatorWidth = 6;
         private readonly Brush _transparentBrush = new SolidColorBrush { Color = Color.FromScRgb(0, 0, 0, 0), Opacity = 0 };
         private readonly Thickness _zeroMargin = new Thickness(0);
         private IDisposable _playbackOnOffNotifier;
