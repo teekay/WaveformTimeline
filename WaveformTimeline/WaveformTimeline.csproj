@@ -1,11 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>WaveformTimeline</RootNamespace>
     <AssemblyName>WaveformTimeline</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Description>A set of controls that display a stereo waveform, time, and progress information about an audio stream.</Description>
+    <Copyright>Copyright © 2022 Tomáš Kohl</Copyright>
+    <PackageProjectUrl>https://github.com/teekay/WaveformTimeline</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>git@github.com:teekay/WaveformTimeline.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>wpf;waveform;audio</PackageTags>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations">
       <Version>2020.1.0</Version>

@@ -9,11 +9,11 @@ This can be useful to you when you develop WPF apps that deal with audio.
 WaveformTimeline control built for your convenience.
 
 # Dependencies
-* .NET 5
-* JetBrains.Annotations 2018.2.1
+* .NET 6
+* JetBrains.Annotations 2020.1.0
 * morelinq 3.3.2
-* System.Reactive 4.4.1
-* System.Reactive.Linq 4.4.1
+* System.Reactive 5.0.0
+* System.Reactive.Linq 5.0.0
 
 # License
 The MIT License (MIT)
