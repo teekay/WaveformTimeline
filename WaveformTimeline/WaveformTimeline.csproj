@@ -15,6 +15,7 @@
     <PackageTags>wpf;waveform;audio</PackageTags>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Authors>Tomáš Kohl</Authors>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\README.md">
