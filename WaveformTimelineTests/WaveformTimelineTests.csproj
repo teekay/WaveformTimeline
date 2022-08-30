@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
+	<LangVersion>9.0</LangVersion>
     <RootNamespace>WaveformTimelineTests</RootNamespace>
     <AssemblyName>WaveformTimelineTests</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -11,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="NUnit" Version="3.13.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0"/>
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
   </ItemGroup>
 
 </Project>
