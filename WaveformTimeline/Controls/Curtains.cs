@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using MoreLinq;
 using WaveformTimeline.Primitives;
 
 namespace WaveformTimeline.Controls
@@ -29,7 +29,7 @@ namespace WaveformTimeline.Controls
      TemplatePart(Name = "PART_LeftCurtain", Type = typeof(Canvas)),
      TemplatePart(Name = "PART_RightCurtain", Type = typeof(Canvas)),
      TemplatePart(Name = "PART_CueMarks", Type = typeof(Canvas))]
-    internal sealed class Curtains : BaseControl
+    internal sealed class Curtains: BaseControl
     {
         private Canvas? _cueMarksCanvas;
         private Canvas? _leftSideCurtain;
@@ -116,7 +116,7 @@ namespace WaveformTimeline.Controls
         /// <summary>
         /// Identifies the <see cref="ShowCueMarks"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty ShowCueMarksProperty = DependencyProperty.Register("ShowCueMarks",
+        public static readonly DependencyProperty ShowCueMarksProperty = DependencyProperty.Register("ShowCueMarks", 
             typeof(bool), typeof(Curtains),
             new UIPropertyMetadata(true, OnShowCueMarksChanged));
 
@@ -189,7 +189,7 @@ namespace WaveformTimeline.Controls
         private void TuneOnCuesChanged(EventPattern<EventArgs>? obj = null)
         {
             var newCues = Tune.Cues().Select(d => new ZeroToOne(new FiniteDouble(d))).ToList();
-            if (newCues.Count == 0 ||
+            if (newCues.Count == 0 || 
                 (_cuePoints.Count > 0 &&
                  newCues.Intersect(_cuePoints).Count() == _cuePoints.Count))
             {
@@ -296,7 +296,7 @@ namespace WaveformTimeline.Controls
             double maxCuePoint = _cuePoints.Count == 1 ? 1 : Math.Min(_cuePoints.Max(), 1);
             if (_coverageArea.Includes(maxCuePoint))
             {
-                double rightSideCurtainLeftX = _waveformDimensions.LeftMargin() + _waveformDimensions.AbsoluteLocationToRendered(_waveformDimensions.PositionOnCompleteWaveform(maxCuePoint));
+                double rightSideCurtainLeftX =  _waveformDimensions.LeftMargin() + _waveformDimensions.AbsoluteLocationToRendered(_waveformDimensions.PositionOnCompleteWaveform(maxCuePoint));
                 double rightSideCurtainRightX = _waveformDimensions.LeftMargin() + _waveformDimensions.Width();
                 _rightSideCurtain.Width = Math.Max(0,
                     (rightSideCurtainRightX - rightSideCurtainLeftX));
@@ -305,8 +305,8 @@ namespace WaveformTimeline.Controls
 
             var curtains = _cuePoints
                 .Select(cue => (
-                    Cue: cue,
-                    Location:
+                    Cue: cue, 
+                    Location: 
                         new FiniteDouble(
                             _waveformDimensions.LeftMargin() + _waveformDimensions.PositionOnCompleteWaveform(cue))))
                 .Select(t => (
@@ -409,12 +409,12 @@ namespace WaveformTimeline.Controls
         private void MoveCuePoint(Point currentPoint, double leftCorner, double rightCorner)
         {
             Debug.Assert(_cueMarksCanvas != null);
-            // Debug.Assert(_selectedCuePointLine != null);
+            Debug.Assert(_selectedCuePointLine != null);
             Debug.Assert(_leftSideCurtain != null);
             Debug.Assert(_rightSideCurtain != null);
-            if (_selectedCuePointMark == null || _selectedCuePointLine == null) return;
+            if (_selectedCuePointMark == null) return;
             _lastKnownGoodX = currentPoint.X;
-            ((Polygon)_selectedCuePointMark).Points = new PointCollection()
+            ((Polygon) _selectedCuePointMark).Points = new PointCollection()
             {
                 new Point(currentPoint.X, 0),
                 new Point(leftCorner, _cueMarksCanvas.RenderSize.Height / 2),
@@ -445,8 +445,8 @@ namespace WaveformTimeline.Controls
         /// <param name="newCue"></param>
         private void CurtainMoved(ZeroToOne newCue)
         {
-            if (_selectedCuePointMark == null || !(_lastKnownGoodX > 0.0d)) return;
-            _cuePoints.Remove(_selectedCuePoint);
+            if (_selectedCuePointMark == null || !(_lastKnownGoodX > 0.0d)) return;            
+            _cuePoints.Remove(_selectedCuePoint); 
             AddCuePoint(newCue);
             Render();
             _animatedCurtain = null;
