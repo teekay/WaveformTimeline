@@ -13,9 +13,11 @@ namespace WaveformTimeline.Controls.Waveform
         {
             _leftWaveformPolyLine = leftWaveformPolyLine;
             _rightWaveformPolyLine = rightWaveformPolyLine;
-            _pointThickness = waveformDimensions.Width() / (int)((waveformSection.End - waveformSection.Start) / 2.0d);
+            _pointThickness = waveformDimensions.Width() / (int)((waveformSection.End - waveformSection.Start + 1) / 2.0d);
             _height = mainCanvas.RenderSize.Height / 2.0d;
             _leftMargin = waveformDimensions.LeftMargin();
+            _leftWaveformPolyLine.Points.Add(new Point(_xLocation, _height));
+            _rightWaveformPolyLine.Points.Add(new Point(_xLocation, _height));
         }
 
         private readonly PolyLineSegment _leftWaveformPolyLine;
@@ -28,6 +30,8 @@ namespace WaveformTimeline.Controls.Waveform
 
         public void DrawWaveform(float[] wf)
         {
+            _rightWaveformPolyLine.Points.RemoveAt(_rightWaveformPolyLine.Points.Count - 1);
+            _leftWaveformPolyLine.Points.RemoveAt(_leftWaveformPolyLine.Points.Count - 1);
             var pointsDrawn = _pointsDrawn;
             var location = _xLocation;
             for (var i = 0; i < wf.Length; i += 2)
@@ -38,6 +42,11 @@ namespace WaveformTimeline.Controls.Waveform
                 pointsDrawn += 2;
             }
             (_xLocation, _pointsDrawn) = (location, pointsDrawn);
+            // Add a point at y=0 to ensure that the resulting polygon is is flush with the middle line
+            // This makes the progressive animation look nicer besides fixing the rendering of some files
+            // It could also just happen once in CompleteWaveform(), but then the animation fix wouldn't be kept
+            _rightWaveformPolyLine.Points.Add(new Point(_xLocation, _height));
+            _leftWaveformPolyLine.Points.Add(new Point(_xLocation, _height));
         }
 
         public void CompleteWaveform()
