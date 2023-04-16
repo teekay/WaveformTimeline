@@ -412,7 +412,7 @@ namespace WaveformTimeline.Controls
             // Debug.Assert(_selectedCuePointLine != null);
             Debug.Assert(_leftSideCurtain != null);
             Debug.Assert(_rightSideCurtain != null);
-            if (_selectedCuePointMark == null || _selectedCuePointLine != null) return;
+            if (_selectedCuePointMark == null || _selectedCuePointLine == null) return;
             _lastKnownGoodX = currentPoint.X;
             ((Polygon)_selectedCuePointMark).Points = new PointCollection()
             {
