@@ -8,7 +8,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Description>A set of controls that display a stereo waveform, time, and progress information about an audio stream.</Description>
-    <Copyright>Copyright © 2022 Tomáš Kohl</Copyright>
+    <Copyright>Copyright © 2024 Tomáš Kohl</Copyright>
     <PackageProjectUrl>https://github.com/teekay/WaveformTimeline</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>git@github.com:teekay/WaveformTimeline.git</RepositoryUrl>
@@ -17,7 +17,7 @@
     <AssemblyVersion>1.0.1</AssemblyVersion>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Tomáš Kohl</Authors>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\README.md">
