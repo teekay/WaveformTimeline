@@ -142,6 +142,20 @@ namespace WaveformTimeline.Controls
 
         private static void OnEnableCueMarksRepositioningChanged(DependencyObject o, DependencyPropertyChangedEventArgs e) => (o as Curtains)?.Render();
 
+        public static readonly DependencyProperty ShowCueMarkToolTipProperty = DependencyProperty.Register
+            (nameof(ShowCueMarkToolTip),
+            typeof(bool), typeof(Curtains),
+            new UIPropertyMetadata(false, OnShowCueMarkToolTipPropertyChanged));
+
+        [Category("Display")]
+        public bool ShowCueMarkToolTip
+        {
+            get => (bool)GetValue(ShowCueMarkToolTipProperty);
+            set => SetValue(ShowCueMarkToolTipProperty, value);
+        }
+
+        private static void OnShowCueMarkToolTipPropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e) => (o as Curtains)?.Render();
+
         /// <summary>
         /// Whether to enable moving the cue marks around
         /// Default: False
@@ -341,6 +355,12 @@ namespace WaveformTimeline.Controls
                     new Point(xLocation + centerOffset, _cueMarksCanvas.RenderSize.Height / 2)  // right
                 }
             };
+
+            if (ShowCueMarkToolTip)
+            {
+                cue.ToolTip = TimeSpan.FromTicks((long)(Tune.TotalTime().Ticks * cp)).ToString(@"m\:ss");
+            }
+
             var cueStyle = Application.Current.FindResource("CueMarkPolygonStyle") as Style;
             var invisibleCueStyle = Application.Current.FindResource("InvisibleCueMarkPolygonStyle") as Style;
             cue.Style = _coverageArea.Includes(cp) ? cueStyle : invisibleCueStyle;

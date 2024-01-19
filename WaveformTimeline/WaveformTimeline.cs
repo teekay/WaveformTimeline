@@ -309,6 +309,18 @@ namespace WaveformTimeline
             set => SetValue(ShowCueMarksProperty, value);
         }
 
+        public static readonly DependencyProperty ShowCueMarkToolTipProperty = DependencyProperty.Register
+            (nameof(ShowCueMarkToolTip),
+            typeof(bool), typeof(WaveformTimeline),
+            new UIPropertyMetadata(false));
+
+        [Category("Display")]
+        public bool ShowCueMarkToolTip
+        {
+            get => (bool)GetValue(ShowCueMarksProperty);
+            set => SetValue(ShowCueMarksProperty, value);
+        }
+
         /// <summary>
         /// Identifies the <see cref="EnableCueMarksRepositioning"/> dependency property.
         /// </summary>

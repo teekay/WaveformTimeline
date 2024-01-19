@@ -71,6 +71,7 @@
                                                CueBarBackgroundBrush="{TemplateBinding CueBarBackgroundBrush}"
                                                CueMarkAccentBrush="{TemplateBinding CueMarkAccentBrush}"
                                                ShowCueMarks="{TemplateBinding ShowCueMarks}"
+                                               ShowCueMarkToolTip="{TemplateBinding ShowCueMarkToolTip}"
                                                EnableCueMarksRepositioning="{TemplateBinding EnableCueMarksRepositioning}"/>
                         </Grid>
                     </Border>

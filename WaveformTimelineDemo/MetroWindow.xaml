@@ -32,6 +32,7 @@
                                          CueBarBackgroundBrush="Black"
                                          CueMarkBrush="AliceBlue"
                                          ShowCueMarks="True"
+										 ShowCueMarkToolTip="True"
                                          ProgressBarBrush="Red"
                                          ProgressBarThickness="2"
                                          LeftLevelBrush="DimGray"
