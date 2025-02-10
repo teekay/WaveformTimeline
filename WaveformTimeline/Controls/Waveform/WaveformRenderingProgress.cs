@@ -34,7 +34,7 @@ namespace WaveformTimeline.Controls.Waveform
             _leftWaveformPolyLine.Points.RemoveAt(_leftWaveformPolyLine.Points.Count - 1);
             var pointsDrawn = _pointsDrawn;
             var location = _xLocation;
-            for (var i = 0; i < wf.Length; i += 2)
+            for (var i = 0; i < wf.Length - 1; i += 2)
             {
                 location = ((pointsDrawn / 2) * _pointThickness) + _leftMargin; // where to draw - increasing by the point thickness
                 _leftWaveformPolyLine.Points.Add(new Point(location, _height + wf[i] * _height));
