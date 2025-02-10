@@ -9,8 +9,7 @@ This can be useful to you when you develop WPF apps that deal with audio.
 WaveformTimeline control built for your convenience.
 
 # Dependencies
-* .NET 6
-* JetBrains.Annotations 2020.1.0
+* .NET 8
 * morelinq 3.3.2
 * System.Reactive 5.0.0
 * System.Reactive.Linq 5.0.0
