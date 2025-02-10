@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -23,14 +24,13 @@ namespace WaveformTimeline.Controls
     [TemplatePart(Name = "PART_ProgressLine", Type = typeof(Canvas))]
     public sealed class ProgressAnimator : BaseControl
     {
-        private readonly Storyboard _trackProgressAnimationBoard = new Storyboard();
-        private readonly Rectangle _progressRect = new Rectangle();
-        private readonly Rectangle _captureMouse = new Rectangle();
-        //private readonly double _indicatorWidth = 6;
+        private readonly Storyboard _trackProgressAnimationBoard = new ();
+        private readonly Rectangle _progressRect = new ();
+        private readonly Rectangle _captureMouse = new ();
         private readonly Brush _transparentBrush = new SolidColorBrush { Color = Color.FromScRgb(0, 0, 0, 0), Opacity = 0 };
-        private readonly Thickness _zeroMargin = new Thickness(0);
-        private IDisposable _playbackOnOffNotifier;
-        private IDisposable _playbackTempoNotifier;
+        private IDisposable? _playbackOnOffNotifier;
+        private IDisposable? _playbackTempoNotifier;
+        private IDisposable? _trackProgressAnimationBoardNotifier;
         private bool StoryboardStarted { get; set; }
 
         /// <summary>
@@ -117,6 +117,11 @@ namespace WaveformTimeline.Controls
         {
             base.OnApplyTemplate();
             MainCanvas = GetTemplateChild("PART_ProgressLine") as Canvas;
+            if (MainCanvas == null)
+            {
+                return;
+            }
+
             _captureMouse.Fill = _transparentBrush;
             MainCanvas.Children.Add(_captureMouse);
             Render();
@@ -125,6 +130,11 @@ namespace WaveformTimeline.Controls
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             base.OnRenderSizeChanged(sizeInfo);
+            if (MainCanvas == null)
+            {
+                return;
+            }
+
             _captureMouse.Width = MainCanvas.RenderSize.Width;
             _captureMouse.Height = MainCanvas.RenderSize.Height;
             Render();
@@ -133,12 +143,16 @@ namespace WaveformTimeline.Controls
         protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonUp(e);
+            if (MainCanvas == null ||
+                !AllowRepositioning || !MainCanvas.IsMouseOver || Tune is NoTune)
+            {
+                return;
+            }
+
             var currentPoint = e.GetPosition(MainCanvas);
-            // ReleaseMouseCapture();
-            if (!AllowRepositioning || !MainCanvas.IsMouseOver || Tune is NoTune) return;
-            var percProgress = _waveformDimensions.PercentOfRenderedWaveform(currentPoint.X);
-            double positionInChannelInSeconds = _coverageArea.ActualPosition(percProgress
-                ); //PositionOnVirtualWaveform(currentPoint) * _coverageArea.Duration() + _coverageArea.StartingPoint();
+            var percProgress = WaveformDimensions.PercentOfRenderedWaveform(currentPoint.X);
+            double positionInChannelInSeconds = CoverageArea.ActualPosition(percProgress
+                );
             Tune.Seek(TimeSpan.FromTicks(
                 Math.Min(Tune.TotalTime().Ticks,
                     Math.Max(0, TimeSpan.FromSeconds(positionInChannelInSeconds).Ticks))));
@@ -147,19 +161,32 @@ namespace WaveformTimeline.Controls
 
         protected override void OnTuneChanged() => Render();
 
-        private double StartingX() => new FiniteDouble(_waveformDimensions.PositionOnRenderedWaveform(
-            _coverageArea.Progress(Tune.CurrentTime().TotalSeconds))); // this is progress within the rendered area
+        private double StartingX() => new FiniteDouble(WaveformDimensions.PositionOnRenderedWaveform(
+            CoverageArea.Progress(Tune.CurrentTime().TotalSeconds))); // this is progress within the rendered area
 
         protected override void Render()
         {
             Clear();
             MeasureArea();
             var uiContext = SynchronizationContext.Current;
-            if (Tune == null || MainCanvas == null || uiContext == null || Tune.TotalTime().TotalSeconds <= 0 || _waveformDimensions.AreEmpty()) return;
-            _trackProgressAnimationBoard.Completed += TrackProgressAnimationBoardOnCompleted;
+            if (MainCanvas == null || uiContext == null ||
+                Tune.TotalTime().TotalSeconds <= 0 ||
+                WaveformDimensions.AreEmpty())
+            {
+                return;
+            }
+
+            _trackProgressAnimationBoardNotifier?.Dispose();
+            _trackProgressAnimationBoardNotifier = Observable.Create<EventArgs>(o =>
+            {
+                EventHandler h = (_, e) => o.OnNext(e);
+                _trackProgressAnimationBoard.Completed += h;
+                return Disposable.Create(() => _trackProgressAnimationBoard.Completed -= h);
+            }).ObserveOn(uiContext)
+            .Subscribe(TrackProgressAnimationBoardOnCompleted);
             _playbackOnOffNotifier = Observable.Create<EventArgs>(o =>
                 {
-                    EventHandler<EventArgs> h = (s, e) => o.OnNext(e);
+                    EventHandler<EventArgs> h = (_, e) => o.OnNext(e);
                     Tune.Transitioned += h;
                     return Disposable.Create(() => Tune.Transitioned -= h);
                 })
@@ -167,14 +194,14 @@ namespace WaveformTimeline.Controls
                 .Subscribe(ControlProgressAnimation);
             _playbackTempoNotifier = Observable.Create<EventArgs>(observer =>
                 {
-                    EventHandler<EventArgs> handler1 = (s, e) => observer.OnNext(e);
-                    Tune.TempoShifted += handler1;
-                    return Disposable.Create(() => Tune.TempoShifted -= handler1);
+                    EventHandler<EventArgs> h = (_, e) => observer.OnNext(e);
+                    Tune.TempoShifted += h;
+                    return Disposable.Create(() => Tune.TempoShifted -= h);
                 })
                 //.Throttle(TimeSpan.FromMilliseconds(100))
                 .ObserveOn(uiContext)
                 .Subscribe(AlterProgressAnimationSpeed);
-            _progressRect.Margin = new Thickness(_waveformDimensions.LeftMargin(), 0, 0, 0);
+            _progressRect.Margin = new Thickness(WaveformDimensions.LeftMargin(), 0, 0, 0);
             _progressRect.Width = 0;
             _progressRect.Height = MainCanvas.RenderSize.Height;
             MainCanvas.Children.Add(_progressRect);
@@ -191,12 +218,12 @@ namespace WaveformTimeline.Controls
         {
             if (!Tune.PlaybackOn()) return;
 
-            var sourceX = StartingX() - _waveformDimensions.LeftMargin();
-            var targetX = _waveformDimensions.Width();
+            var sourceX = StartingX() - WaveformDimensions.LeftMargin();
+            var targetX = WaveformDimensions.Width();
             if (targetX < sourceX || targetX <= 0) return;
 
-            var remainingTimeInSeconds = TimeSpan.FromSeconds(_coverageArea.Remaining(Tune.CurrentTime().TotalSeconds)); // Tip: do not adjust by Tune.Tempo, it will be taken into account by AlterProgressAnimationSpeed()
-            DoubleAnimation XAnimation() => new DoubleAnimation(sourceX, targetX, remainingTimeInSeconds);
+            var remainingTimeInSeconds = TimeSpan.FromSeconds(CoverageArea.Remaining(Tune.CurrentTime().TotalSeconds)); // Tip: do not adjust by Tune.Tempo, it will be taken into account by AlterProgressAnimationSpeed()
+            DoubleAnimation XAnimation() => new (sourceX, targetX, remainingTimeInSeconds);
             var widthAnimation = XAnimation();
 
             _trackProgressAnimationBoard.Children.Clear();
@@ -259,17 +286,16 @@ namespace WaveformTimeline.Controls
         /// <summary>
         /// Called when the storyboard completes
         /// </summary>
-        /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
-        private void TrackProgressAnimationBoardOnCompleted(object sender, EventArgs eventArgs) => StoryboardStarted = false;
+        private void TrackProgressAnimationBoardOnCompleted(EventArgs eventArgs) => StoryboardStarted = false;
 
         private void Clear()
         {
             _playbackTempoNotifier?.Dispose();
             _playbackOnOffNotifier?.Dispose();
+            _trackProgressAnimationBoardNotifier?.Dispose();
             StopAnimations();
-            _trackProgressAnimationBoard.Completed -= TrackProgressAnimationBoardOnCompleted;
-            MainCanvas.Children.Remove(_progressRect);
+            MainCanvas?.Children.Remove(_progressRect);
         }
     }
 }

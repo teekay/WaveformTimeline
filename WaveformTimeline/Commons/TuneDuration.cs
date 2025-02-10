@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using JetBrains.Annotations;
 using WaveformTimeline.Contracts;
 using WaveformTimeline.Primitives;
 
@@ -9,8 +7,7 @@ namespace WaveformTimeline.Commons
     /// <summary>
     /// Represents the portion of the track's duration in units to be displayed given a position and zoom levels.
     /// </summary>
-    [DebuggerDisplay("TuneDuration | Start: {Start}, End: {End}, Zoom: {Zoom}")]
-    public struct TuneDuration
+    public readonly struct TuneDuration : IEquatable<TuneDuration>
     {
         /// <summary>
         /// Initialize with an instance of ITimedPlayback and assumed zoom=1
@@ -47,7 +44,7 @@ namespace WaveformTimeline.Commons
         {
             Length = Math.Max(0.0, new FiniteDouble(length).Value());
             Zoom = Math.Max(1.0, new FiniteDouble(zoom, 1.0).Value());
-            double currentPosition = new FiniteDouble(Length <= 0.0 ? 0.0 : Math.Min(Length, position) / Length, 0.0d).Value();
+            double currentPosition = new FiniteDouble(Length <= 0.0 ? 0.0 : Math.Min(Length, position) / Length).Value();
             double fullArea = 1.0d / Zoom;
             double halfArea = fullArea / 2.0d;
             double windowStart = currentPosition - halfArea; // this can mean < 0
@@ -70,10 +67,12 @@ namespace WaveformTimeline.Commons
                 windowStart = windowEnd - fullArea;
             }
 
-            var windowBetween0and1 = windowStart >= 0.0d && windowEnd <= 1.0d;
+            var windowBetween0And1 = windowStart >= 0.0d && windowEnd <= 1.0d;
             var windowStartBeforeEnd = windowEnd > windowStart;
-            if (!windowBetween0and1 || !windowStartBeforeEnd)
+#if DEBUG
+            if (!windowBetween0And1 || !windowStartBeforeEnd)
                 throw new Exception($"Assertion failed: {windowStart} and {windowEnd} are suspect!");
+#endif
             Start = windowStart;
             End = windowEnd;
         }
@@ -98,14 +97,12 @@ namespace WaveformTimeline.Commons
         /// <summary>
         /// Tells whether a given point (0 - 1) is visible on the currently displayed waveform given the zoom level.
         /// </summary>
-        [Pure]
         public bool Includes(ZeroToOne point) => point >= Start && point <= End;
 
         /// <summary>
         /// Provides the starting position in the channel in units
         /// </summary>
         /// <returns></returns>
-        [Pure]
         public double StartingPoint() => Start * Length;
 
         /// <summary>
@@ -114,7 +111,6 @@ namespace WaveformTimeline.Commons
         /// </summary>
         /// <param name="total"></param>
         /// <returns></returns>
-        [Pure]
         public double HiddenBefore(double total) => Start * total;
 
         /// <summary>
@@ -122,7 +118,6 @@ namespace WaveformTimeline.Commons
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        [Pure]
         public ZeroToOne Progress(double position) => new ZeroToOne((new FiniteDouble(position) - StartingPoint()) / Duration());
 
         /// <summary>
@@ -130,14 +125,12 @@ namespace WaveformTimeline.Commons
         /// </summary>
         /// <param name="percOfCoveredArea">Position within the section of the Tune that is covered by this instance</param>
         /// <returns>Actual position in the total channel</returns>
-        [Pure]
         public double ActualPosition(ZeroToOne percOfCoveredArea) => StartingPoint() + percOfCoveredArea * Duration();
 
         /// <summary>
         /// Duration of the channel within the covered area (100% when Zoom=1, less when Zoom > 1)
         /// </summary>
         /// <returns></returns>
-        [Pure]
         public double Duration() => Length * (End - Start);
 
         /// <summary>
@@ -145,7 +138,6 @@ namespace WaveformTimeline.Commons
         /// </summary>
         /// <param name="position">Position in the channel in units</param>
         /// <returns>Remaining length in units</returns>
-        [Pure]
         public double Remaining(double position) => Duration() - Progress(position)*Duration();
 
         /// <summary>
@@ -176,6 +168,11 @@ namespace WaveformTimeline.Commons
             {
                 return (Start.GetHashCode() * 397) ^ End.GetHashCode();
             }
+        }
+
+        public override string ToString()
+        {
+            return $"TuneDuration | Start: {Start}, End: {End}, Zoom: {Zoom}";
         }
     }
 }

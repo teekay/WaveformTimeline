@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using WaveformTimeline.Commons;
@@ -9,15 +10,15 @@ namespace WaveformTimeline.Controls
 {
     public abstract class BaseControl: Control
     {
-        protected Canvas MainCanvas
+        protected Canvas? MainCanvas
         {
             get => _mainCanvas;
             set { if (value != null) _mainCanvas = value; } 
         }
 
-        protected TuneDuration _coverageArea;
-        protected WaveformDimensions _waveformDimensions;
-        private Canvas _mainCanvas = new Canvas();
+        protected TuneDuration CoverageArea;
+        protected WaveformDimensions WaveformDimensions;
+        private Canvas _mainCanvas = new ();
 
         public static readonly DependencyProperty TuneProperty =
             DependencyProperty.Register("Tune", typeof(ITune), typeof(BaseControl),
@@ -33,7 +34,18 @@ namespace WaveformTimeline.Controls
             get => (ITune)GetValue(TuneProperty) ?? new NoTune(); // no null acceptable
             set
             {
-                (Tune as IDisposable)?.Dispose(); // TODO revisit this, ITune does not include IDisposable
+                if (value == Tune)
+                {
+                    return;
+                }
+
+                // ReSharper disable once SuspiciousTypeConversion.Global
+                if (Tune is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+
+                // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
                 SetValue(TuneProperty, value ?? new NoTune());
             }
         }
@@ -55,8 +67,8 @@ namespace WaveformTimeline.Controls
 
         protected virtual void MeasureArea()
         {
-            _coverageArea = new TuneDuration(Tune, Zoom);
-            _waveformDimensions = new WaveformDimensions(_coverageArea, MainCanvas.RenderSize.Width);
+            CoverageArea = new TuneDuration(Tune, Zoom);
+            WaveformDimensions = new WaveformDimensions(CoverageArea, MainCanvas?.RenderSize.Width ?? 0d);
         }
 
         protected abstract void Render();

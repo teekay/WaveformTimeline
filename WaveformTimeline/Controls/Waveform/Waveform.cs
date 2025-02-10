@@ -1,7 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -10,7 +10,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using JetBrains.Annotations;
 using MoreLinq.Extensions;
 using WaveformTimeline.Commons;
 using WaveformTimeline.Contracts;
@@ -28,34 +27,27 @@ namespace WaveformTimeline.Controls.Waveform
     {
         public Waveform()
         {
-            _uiContext = SynchronizationContext.Current;
+            _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("This class must be instantiated on the UI thread");
             _redrawObservable = new RedrawObservable();
             Unloaded += OnUnloaded;
         }
 
         private readonly SynchronizationContext _uiContext;
         private readonly RedrawObservable _redrawObservable;
-        private IDisposable _redrawDisposable;
-        private readonly Path _leftPath = new Path();
-        private readonly Path _rightPath = new Path();
-        private readonly Line _centerLine = new Line();
-        private readonly List<Line> _leftSideOffsetDashes = new List<Line>();
-        private readonly List<Line> _rightSideOffsetDashes = new List<Line>();
-        private IDisposable _waveformBuildDisposable;
-        private RenderedToDimensions _lastRenderedToDimensions;
-        private BackgroundWorker _renderingInBackground;
-        //private BlockingCollection<float> _waveformDatapump;
+        private IDisposable? _redrawDisposable;
+        private IDisposable? _waveformBuildDisposable;
+        private readonly Path _leftPath = new ();
+        private readonly Path _rightPath = new ();
+        private readonly Line _centerLine = new ();
+        private readonly List<Line> _leftSideOffsetDashes = new ();
+        private readonly List<Line> _rightSideOffsetDashes = new ();
+        private RenderedToDimensions? _lastRenderedToDimensions;
+        private BackgroundWorker? _renderingInBackground;
 
-        private class RenderedToDimensions
+        private class RenderedToDimensions(ITune tune, WaveformDimensions dimensions)
         {
-            public RenderedToDimensions(ITune tune, WaveformDimensions dimensions)
-            {
-                Tune = tune;
-                Dimensions = dimensions;
-            }
-
-            public ITune Tune { get; }
-            public WaveformDimensions Dimensions { get; }
+            public ITune Tune { get; } = tune;
+            public WaveformDimensions Dimensions { get; } = dimensions;
         }
 
         /// <summary>
@@ -241,15 +233,20 @@ namespace WaveformTimeline.Controls.Waveform
             set => SetValue(ProgressiveRenderingProperty, value);
         }
 
-        private IEnumerable<DependencyObject> ThisAndParentsOf(DependencyObject element)
+        private IEnumerable<DependencyObject> ThisAndParentsOf(DependencyObject? element)
         {
-            if (element == null) return new List<DependencyObject>();
+            if (element == null)
+            {
+                return new List<DependencyObject>();
+            }
+
             var list = new List<DependencyObject> { element };
             list.AddRange(ThisAndParentsOf(VisualTreeHelper.GetParent(element)));
+
             return list;
         }
 
-        private double AdjustedByTransformM11(Transform transform) =>
+        private double AdjustedByTransformM11(Transform? transform) =>
             (transform != null) &&
             (Math.Abs(transform.Value.M12) < 0.001) &&
             (Math.Abs(transform.Value.M21) < 0.001) &&
@@ -265,36 +262,13 @@ namespace WaveformTimeline.Controls.Waveform
                 .Select(visual => AdjustedByTransformM11(VisualTreeHelper.GetTransform((Visual)visual)))
                 .Aggregate(1.0, (acc, x) => acc * x);
 
-        // ReSharper disable once UnusedMember.Local
-        private double TotalTransformScale()
-        {
-            double totalTransform = 1.0d;
-            DependencyObject currentVisualTreeElement = this;
-            do
-            {
-                if (currentVisualTreeElement is Visual visual)
-                {
-                    Transform transform = VisualTreeHelper.GetTransform(visual);
-                    // This condition is a way of determining if it
-                    // was a uniform scale transform. Is there some better way?
-                    if ((transform != null) &&
-                        (Math.Abs(transform.Value.M12) < 0.001) &&
-                        (Math.Abs(transform.Value.M21) < 0.001) &&
-                        (Math.Abs(transform.Value.OffsetX) < 0.001) &&
-                        (Math.Abs(transform.Value.OffsetY) < 0.001) &&
-                        (Math.Abs(transform.Value.M11 - transform.Value.M22) < 0.001))
-                    {
-                        totalTransform *= transform.Value.M11;
-                    }
-                }
-                currentVisualTreeElement = VisualTreeHelper.GetParent(currentVisualTreeElement);
-            } while (currentVisualTreeElement != null);
-            return totalTransform;
-        }
-
         private void UpdateWaveformCacheScaling()
         {
-            if (MainCanvas == null) return;
+            if (MainCanvas == null)
+            {
+                return;
+            }
+
             BitmapCache waveformCache = (BitmapCache)MainCanvas.CacheMode;
             if (!AutoScaleWaveformCache)
             {
@@ -303,9 +277,10 @@ namespace WaveformTimeline.Controls.Waveform
             }
             double totalTransformScale = TotalTransformScaleFn();
             if (Math.Abs(waveformCache.RenderAtScale - totalTransformScale) > 0.001)
+            {
                 waveformCache.RenderAtScale = totalTransformScale;
+            }
         }
-
 
         protected override void OnTuneChanged()
         {
@@ -316,7 +291,11 @@ namespace WaveformTimeline.Controls.Waveform
         {
             base.OnApplyTemplate();
             MainCanvas = GetTemplateChild("PART_Waveform") as Canvas;
-            Debug.Assert(MainCanvas != null, nameof(MainCanvas) + " != null");
+            if (MainCanvas == null)
+            {
+                return;
+            }
+
             MainCanvas.CacheMode = new BitmapCache();
             // Used to make the transparent regions clickable.
             MainCanvas.Background = new SolidColorBrush(Colors.Transparent);
@@ -325,6 +304,7 @@ namespace WaveformTimeline.Controls.Waveform
             MainCanvas.Children.Add(_leftPath);
             MainCanvas.Children.Add(_rightPath);
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (CenterLineBrush != null)
             {
                 _centerLine.X1 = 0;
@@ -346,7 +326,7 @@ namespace WaveformTimeline.Controls.Waveform
         protected override void OnTemplateChanged(ControlTemplate oldTemplate, ControlTemplate newTemplate)
         {
             base.OnTemplateChanged(oldTemplate, newTemplate);
-            MainCanvas.Children.Clear();
+            MainCanvas?.Children.Clear();
             _lastRenderedToDimensions = null;
         }
 
@@ -357,24 +337,24 @@ namespace WaveformTimeline.Controls.Waveform
         }
 
 
-        private static float[] CreateFloats([NotNull]byte[] bytes)
+        private static float[] CreateFloats(byte[] bytes)
         {
             var floats = new float[bytes.Length / 4];
             Buffer.BlockCopy(bytes, 0, floats, 0, bytes.Length);
+
             return floats;
         }
 
         private bool ShouldRedraw()
         {
-            if (MainCanvas == null ||
-                (_lastRenderedToDimensions != null &&
-                (AreTunesTheSame() && AreDimensionsSame()))) return false;
-            return true;
+            return MainCanvas != null &&
+                   (_lastRenderedToDimensions == null ||
+                    (!AreTunesTheSame() || !AreDimensionsSame()));
         }
 
-        private bool AreTunesTheSame() => Tune.Name() == _lastRenderedToDimensions.Tune.Name();
+        private bool AreTunesTheSame() => Tune.Name() == _lastRenderedToDimensions?.Tune.Name();
 
-        private bool AreDimensionsSame() => _waveformDimensions.Equals(_lastRenderedToDimensions.Dimensions);
+        private bool AreDimensionsSame() => WaveformDimensions.Equals(_lastRenderedToDimensions?.Dimensions);
 
         /// <summary>
         /// Show the waveform
@@ -382,28 +362,20 @@ namespace WaveformTimeline.Controls.Waveform
         protected override void Render()
         {
             MeasureArea();
-            if (!ShouldRedraw()) return;
-            Clear();
-            var (leftWaveformPolyLine, rightWaveformPolyLine) = PreparedDrawingArea();
-            var section = new WaveformSection(_coverageArea, Tune, WaveformResolution);
-            var renderWaveform = new WaveformRenderingProgress(_waveformDimensions, section, MainCanvas, leftWaveformPolyLine, rightWaveformPolyLine);
-            var renderingMethod = ProgressiveRendering 
-                ? (Action<WaveformSection, WaveformRenderingProgress>)RenderProgressively 
-                : BackgroundReadThenRender;
-            renderingMethod(section, renderWaveform);
-            _lastRenderedToDimensions = new RenderedToDimensions(Tune, _waveformDimensions);
-        }
+            if (!ShouldRedraw() || MainCanvas == null)
+            {
+                return;
+            }
 
-        private (PolyLineSegment, PolyLineSegment) PreparedDrawingArea()
-        {
+            Clear();
             var centerHeight = MainCanvas.RenderSize.Height / 2.0d;
-            var availableWidth = MainCanvas.RenderSize.Width - _waveformDimensions.RightMargin();
-            var leftWaveformPolyLine = new PolyLineSegment();
-            var rightWaveformPolyLine = new PolyLineSegment();
-            Point StartPoint() => new Point(_waveformDimensions.LeftMargin(), centerHeight);
-            _leftPath.Data = new PathGeometry(new[] { new PathFigure(StartPoint(), new[] { leftWaveformPolyLine }, false) });
-            _rightPath.Data = new PathGeometry(new[] { new PathFigure(StartPoint(), new[] { rightWaveformPolyLine }, false) });
-            _centerLine.X1 = _waveformDimensions.LeftMargin();
+            var availableWidth = MainCanvas.RenderSize.Width - WaveformDimensions.RightMargin();
+            var leftWaveformPolyLine1 = new PolyLineSegment();
+            var rightWaveformPolyLine1 = new PolyLineSegment();
+            Point StartPoint() => new Point(WaveformDimensions.LeftMargin(), centerHeight);
+            _leftPath.Data = new PathGeometry(new[] { new PathFigure(StartPoint(), new[] { leftWaveformPolyLine1 }, false) });
+            _rightPath.Data = new PathGeometry(new[] { new PathFigure(StartPoint(), new[] { rightWaveformPolyLine1 }, false) });
+            _centerLine.X1 = WaveformDimensions.LeftMargin();
             _centerLine.X2 = availableWidth;
             var halfHeight = MainCanvas.RenderSize.Height / 2.0d;
             _centerLine.Y1 = halfHeight;
@@ -414,11 +386,18 @@ namespace WaveformTimeline.Controls.Waveform
             // The following section adds an empty space before the beginning of the waveform with leading dashes
             if (Tune.TotalTime().TotalSeconds > 0)
             {
-                CreateDashedPadding(0, _waveformDimensions.LeftMargin(), _leftSideOffsetDashes);
-                if (_coverageArea.Includes(1.0))
-                    CreateDashedPadding(availableWidth, _waveformDimensions.RightMargin(), _rightSideOffsetDashes);
+                CreateDashedPadding(0, WaveformDimensions.LeftMargin(), _leftSideOffsetDashes);
+                if (CoverageArea.Includes(1.0))
+                    CreateDashedPadding(availableWidth, WaveformDimensions.RightMargin(), _rightSideOffsetDashes);
             }
-            return (leftWaveformPolyLine, rightWaveformPolyLine);
+            var (leftWaveformPolyLine, rightWaveformPolyLine) = ((PolyLineSegment, PolyLineSegment))(leftWaveformPolyLine1, rightWaveformPolyLine1);
+            var section = new WaveformSection(CoverageArea, Tune, WaveformResolution);
+            var renderWaveform = new WaveformRenderingProgress(WaveformDimensions, section, MainCanvas, leftWaveformPolyLine, rightWaveformPolyLine);
+            var renderingMethod = ProgressiveRendering 
+                ? (Action<WaveformSection, WaveformRenderingProgress>)RenderProgressively 
+                : BackgroundReadThenRender;
+            renderingMethod(section, renderWaveform);
+            _lastRenderedToDimensions = new RenderedToDimensions(Tune, WaveformDimensions);
         }
 
         private void RenderProgressively(WaveformSection section, WaveformRenderingProgress renderWaveform)
@@ -432,6 +411,7 @@ namespace WaveformTimeline.Controls.Waveform
             var resolution = WaveformResolution; // can't inline this because it cannot be accessed safely from another thread
             var observable = Tune.WaveformStream();
             var steps = Math.Min(resolution, 1000);
+            _waveformBuildDisposable?.Dispose();
             _waveformBuildDisposable = observable.ObserveOn(_uiContext)
                 .Buffer(steps)
                 .Subscribe(e => renderWaveform.DrawWaveform(e.ToArray()),
@@ -460,30 +440,24 @@ namespace WaveformTimeline.Controls.Waveform
             renderWaveform.CompleteWaveform();
         }
 
-        private void ReadWaveformInBackground(object sender, DoWorkEventArgs e)
+        private void ReadWaveformInBackground(object? sender, DoWorkEventArgs e)
         {
-            var args = (BackgroundRenderingArgs)e.Argument;
-            args!.Tune.WaveformStream().Waveform(args.Resolution);
+            var args = e.Argument as BackgroundRenderingArgs;
+            args?.Tune.WaveformStream().Waveform(args.Resolution);
             e.Result = args;
         }
 
-        private void OnBackgroundRenderingCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void OnBackgroundRenderingCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error != null || !(e.Result is BackgroundRenderingArgs args)) return;
             RenderWaveformSync(args.RenderWaveform, CreateFloats(Tune.WaveformData()));
         }
 
-        private class BackgroundRenderingArgs
+        private class BackgroundRenderingArgs(ITune tune, WaveformRenderingProgress renderWaveform, int resolution)
         {
-            public BackgroundRenderingArgs(ITune tune, WaveformRenderingProgress renderWaveform, int resolution)
-            {
-                Tune = tune;
-                RenderWaveform = renderWaveform;
-                Resolution = resolution;
-            }
-            public ITune Tune { get; }
-            public int Resolution { get; }
-            public WaveformRenderingProgress RenderWaveform { get; }
+            public ITune Tune { get; } = tune;
+            public int Resolution { get; } = resolution;
+            public WaveformRenderingProgress RenderWaveform { get; } = renderWaveform;
         }
 
         private Line DrawDash(int i, double centerPos, double startPos, int dashSize, int inInBetweenDashesSpace)
@@ -502,14 +476,19 @@ namespace WaveformTimeline.Controls.Waveform
 
         private void CreateDashedPadding(double startPos, double spaceInPx, List<Line> dashes)
         {
+            if (MainCanvas == null)
+            {
+                return;
+            }
+
             const int minDashSize = 3;
             const int maxDashCount = 5;
             const int minInBetweenDashesSpace = 3;
             int dashSize = minDashSize;
-            int dashCount = Math.Min(maxDashCount, (int)Math.Floor(_waveformDimensions.LeftMargin() / dashSize));
+            int dashCount = Math.Min(maxDashCount, (int)Math.Floor(WaveformDimensions.LeftMargin() / dashSize));
             var dashTotalWidth = dashCount * minDashSize;
             dashSize += Math.Max(0, (int)Math.Floor(((spaceInPx - dashTotalWidth - ((dashCount - 1) * minInBetweenDashesSpace)) / dashCount)));
-            int inInBetweenDashesSpace = Math.Max(minInBetweenDashesSpace, (int)Math.Floor((_waveformDimensions.LeftMargin() - (dashSize * dashCount)) / dashCount));
+            int inInBetweenDashesSpace = Math.Max(minInBetweenDashesSpace, (int)Math.Floor((WaveformDimensions.LeftMargin() - (dashSize * dashCount)) / dashCount));
             var centerPos = MainCanvas.RenderSize.Height / 2;
             var lines = Enumerable.Range(0, dashCount)
                 .Select(i => DrawDash(i, centerPos, startPos, dashSize, inInBetweenDashesSpace));
@@ -524,7 +503,7 @@ namespace WaveformTimeline.Controls.Waveform
         public void Clear()
         {
             _waveformBuildDisposable?.Dispose();
-            MainCanvas.Children.Clear();
+            MainCanvas?.Children.Clear();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)

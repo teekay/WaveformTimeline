@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using JetBrains.Annotations;
 using WaveformTimeline.Primitives;
 
 namespace WaveformTimeline.Commons
@@ -8,8 +6,7 @@ namespace WaveformTimeline.Commons
     /// <summary>
     /// Encapsulates significant facts about the waveform control's dimensions
     /// </summary>
-    [DebuggerDisplay("{CompleteWidth}/{RenderedWidth} - {LeftPadding}/{RightPadding} - {StartsAtPx}")]
-    public readonly struct WaveformDimensions
+    public readonly struct WaveformDimensions : IEquatable<WaveformDimensions>
     {
         public WaveformDimensions(TuneDuration coverageArea, double canvasWidth)
             : this(coverageArea, canvasWidth,
@@ -74,7 +71,6 @@ namespace WaveformTimeline.Commons
         /// <summary>
         /// Returns whether the instance has zero rendered width
         /// </summary>        
-        [Pure]
         public bool AreEmpty() => RenderedWidth <= 0;
 
         /// <summary>
@@ -83,31 +79,26 @@ namespace WaveformTimeline.Commons
         /// Att: can be negative!
         /// </summary>
         /// <param name="location"></param>        
-        [Pure]
         public double AbsoluteLocationToRendered(double location) => location - StartsAtPx;
 
         /// <summary>
         /// Reveals the left margin (no content) in pixels
         /// </summary>
-        [Pure]
         public double LeftMargin() => LeftPadding;
 
         /// <summary>
         /// Reveals the right margin (no content) in pixels
         /// </summary>        
-        [Pure]
         public double RightMargin() => RightPadding;
 
         /// <summary>
         /// Returns the sum of left and right margins in pixels
         /// </summary>        
-        [Pure]
         public double Margins() => LeftMargin() + RightMargin();
 
         /// <summary>
         /// Returns the width of the currently rendered waveform without margins
         /// </summary>        
-        [Pure]
         public double Width() => RenderedWidth;
 
         /// <summary>
@@ -115,7 +106,6 @@ namespace WaveformTimeline.Commons
         /// provides its location on the X-axis plus the value of the left margin.
         /// </summary>
         /// <param name="point"></param>        
-        [Pure]
         public double PositionOnRenderedWaveform(ZeroToOne point) => new FiniteDouble(point) * RenderedWidth + LeftMargin();
 
         /// <summary>
@@ -123,22 +113,19 @@ namespace WaveformTimeline.Commons
         /// representing the percentage of the area covered to the left of the position.
         /// </summary>
         /// <param name="position"></param>        
-        [Pure]
         public ZeroToOne PercentOfRenderedWaveform(double position) => (new FiniteDouble(position) - LeftMargin()) / RenderedWidth;
 
         /// <summary>
         /// Given a number 0-1, returns its x-location in pixels on the virtual waveform
         /// </summary>
         /// <param name="point"></param>        
-        [Pure]
+        
         public double PositionOnCompleteWaveform(ZeroToOne point) => new FiniteDouble(point) * CompleteWidth;
-
         /// <summary>
         /// Given a location in pixels, returns a number between 0-1 corresponding to where this number is on the complete waveform,
         /// which is to say, on the complete waveform, even though only a portion of it might be rendered.
         /// </summary>
         /// <param name="location"></param>        
-        [Pure]
         public ZeroToOne PercentOfCompleteWaveform(double location) =>
            new ZeroToOne(
                new FiniteDouble((location + StartsAtPx - LeftPadding) / CompleteWidth));
@@ -177,6 +164,11 @@ namespace WaveformTimeline.Commons
                 hashCode = (hashCode * 397) ^ StartsAtPx.GetHashCode();
                 return hashCode;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"WaveformDimensions: {CompleteWidth}/{RenderedWidth}-{LeftPadding}/{RightPadding}-{StartsAtPx}";
         }
     }
 }
