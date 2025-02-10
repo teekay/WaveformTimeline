@@ -1,0 +1,48 @@
+name: Publish to NuGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (leave empty to read from AssemblyInfo.cs)"
+        required: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      Solution_Name: WaveformTimeline.sln
+      Project_Path: WaveformTimeline\WaveformTimeline.csproj
+      NuGet_Source: https://api.nuget.org/v3/index.json
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Extract Version from AssemblyInfo.cs (if not provided)
+      if: ${{ github.event.inputs.version == '' }}
+      id: get_version
+      run: |
+        $version = Select-String -Path WaveformTimeline/Properties/AssemblyInfo.cs -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | ForEach-Object { $_.Matches.Groups[1].Value }
+        echo "::set-output name=version::$version"
+      shell: pwsh
+
+    - name: Set Version Variable
+      run: echo "PACKAGE_VERSION=${{ github.event.inputs.version || steps.get_version.outputs.version }}" >> $GITHUB_ENV
+
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Project_Path }}
+
+    - name: Build Project
+      run: dotnet build ${{ env.Project_Path }} --configuration Release /p:Version=${{ env.PACKAGE_VERSION }} --no-restore
+
+    - name: Pack NuGet Package
+      run: dotnet pack ${{ env.Project_Path }} --configuration Release --no-build --output nupkg /p:Version=${{ env.PACKAGE_VERSION }}
+
+    - name: Publish to NuGet
+      run: dotnet nuget push nupkg/*.nupkg --source ${{ env.NuGet_Source }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
