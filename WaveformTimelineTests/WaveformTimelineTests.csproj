@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
-	<LangVersion>9.0</LangVersion>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
+	<LangVersion>latest</LangVersion>
     <RootNamespace>WaveformTimelineTests</RootNamespace>
     <AssemblyName>WaveformTimelineTests</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

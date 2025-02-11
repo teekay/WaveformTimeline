@@ -213,8 +213,8 @@ namespace WaveformTimeline.Controls.Timeline
                 : Tune is NoTune || Math.Abs(new FiniteDouble(Tune.TotalTime().TotalSeconds, 0.0d).Value()) < 0.001
                     ? new NoTune(EmptyTuneDurationInSeconds) // case of no real tune having been supplied
                     : Tune;
-            _coverageArea = new TuneDuration(tune, Zoom);
-            _waveformDimensions = new WaveformDimensions(_coverageArea, MainCanvas.RenderSize.Width);
+            CoverageArea = new TuneDuration(tune, Zoom);
+            WaveformDimensions = new WaveformDimensions(CoverageArea, MainCanvas.RenderSize.Width);
         }
 
 
@@ -225,11 +225,11 @@ namespace WaveformTimeline.Controls.Timeline
         {
             Clear();
             MeasureArea();
-            var timelineSource = new TimelineSource(_coverageArea);
+            var timelineSource = new TimelineSource(CoverageArea);
             var bottomLoc = MainCanvas.RenderSize.Height - 1;
             var firstMark = timelineSource.Beginning;
-            var timelineMarkingStrategy = TimelineType.Strategy(_coverageArea, firstMark, EndRevealingMark);
-            var timelineTickLocation = new TimelineTickLocation(_coverageArea, _waveformDimensions);
+            var timelineMarkingStrategy = TimelineType.Strategy(CoverageArea, firstMark, EndRevealingMark);
+            var timelineTickLocation = new TimelineTickLocation(CoverageArea, WaveformDimensions);
             var listOfSeconds = timelineSource.Seconds().ToList();
             var majorTicksAt = listOfSeconds.Where(timelineMarkingStrategy.AtMajorTick).ToList();
             _timelineTickLine.X1 = 0;
