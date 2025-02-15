@@ -41,6 +41,7 @@
                                          Width="Auto"
                                          Height="120"
                                          Zoom="1"
+                                         AutoScaleWaveformCache="True"
                                          WaveformResolution="2000"
                                          TimelineType="Constant"
                                          ProgressiveRendering="False"/>

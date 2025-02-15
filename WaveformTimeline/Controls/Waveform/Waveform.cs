@@ -269,7 +269,12 @@ namespace WaveformTimeline.Controls.Waveform
                 return;
             }
 
-            BitmapCache waveformCache = (BitmapCache)MainCanvas.CacheMode;
+            BitmapCache? waveformCache = MainCanvas.CacheMode as BitmapCache;
+            if (waveformCache == null)
+            {
+                waveformCache = new BitmapCache();
+                MainCanvas.CacheMode = waveformCache;
+            }
             if (!AutoScaleWaveformCache)
             {
                 waveformCache.RenderAtScale = 1.0d;
