@@ -28,7 +28,7 @@ namespace WaveformTimeline.Controls
      TemplatePart(Name = "PART_LeftCurtain", Type = typeof(Canvas)),
      TemplatePart(Name = "PART_RightCurtain", Type = typeof(Canvas)),
      TemplatePart(Name = "PART_CueMarks", Type = typeof(Canvas))]
-    internal sealed class Curtains : BaseControl
+    public sealed class Curtains : BaseControl
     {
         private Canvas? _cueMarksCanvas;
         private Canvas? _leftSideCurtain;
