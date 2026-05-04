@@ -1,0 +1,9 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="WaveformTimelineDemo.Avalonia.App"
+             xmlns:wf="using:WaveformTimeline">
+    <Application.Styles>
+        <FluentTheme />
+        <wf:WaveformTimelineTheme />
+    </Application.Styles>
+</Application>

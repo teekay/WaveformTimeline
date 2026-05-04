@@ -1,0 +1,119 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wf="using:WaveformTimeline"
+        xmlns:timeline="using:WaveformTimeline.Controls.Timeline"
+        xmlns:waveform="using:WaveformTimeline.Controls.Waveform"
+        xmlns:controls="using:WaveformTimeline.Controls">
+
+    <Styles.Resources>
+        <LinearGradientBrush x:Key="WaveformRightLevelBrush" EndPoint="1,1" StartPoint="1,0">
+            <GradientStop Color="#5E0004" Offset="0" />
+            <GradientStop Color="#EB0017" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="WaveformLeftLevelBrush" EndPoint="1,0" StartPoint="1,1">
+            <GradientStop Color="#3B6A97" Offset="0" />
+            <GradientStop Color="#39A9FF" Offset="1" />
+        </LinearGradientBrush>
+
+        <ControlTheme x:Key="{x:Type wf:WaveformTimeline}" TargetType="wf:WaveformTimeline">
+            <Setter Property="TimelineTickBrush" Value="#393939" />
+            <Setter Property="ProgressBarBrush" Value="#64009E" />
+            <Setter Property="CenterLineBrush" Value="#8A8A8A" />
+            <Setter Property="RightLevelBrush" Value="{StaticResource WaveformRightLevelBrush}" />
+            <Setter Property="LeftLevelBrush" Value="{StaticResource WaveformLeftLevelBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="wf:WaveformTimeline">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid RowDefinitions="20,*">
+                            <timeline:Timeline Grid.Row="0"
+                                               x:Name="Component_Timeline"
+                                               Tune="{TemplateBinding Tune}"
+                                               TimelineTickBrush="{TemplateBinding TimelineTickBrush}"
+                                               Zoom="{TemplateBinding Zoom}"
+                                               TimelineType="{TemplateBinding TimelineType}"
+                                               EndRevealingMark="{TemplateBinding EndRevealingMark}" />
+                            <waveform:Waveform x:Name="Component_Waveform"
+                                               Grid.Row="1"
+                                               Tune="{TemplateBinding Tune}"
+                                               Zoom="{TemplateBinding Zoom}"
+                                               LeftLevelBrush="{TemplateBinding LeftLevelBrush}"
+                                               RightLevelBrush="{TemplateBinding RightLevelBrush}"
+                                               CenterLineBrush="{TemplateBinding CenterLineBrush}"
+                                               CenterLineThickness="{TemplateBinding CenterLineThickness}"
+                                               WaveformResolution="{TemplateBinding WaveformResolution}"
+                                               AutoScaleWaveformCache="{TemplateBinding AutoScaleWaveformCache}"
+                                               ProgressiveRendering="{TemplateBinding ProgressiveRendering}" />
+                            <controls:ProgressAnimator x:Name="Component_Progress"
+                                                       Grid.Row="0"
+                                                       Grid.RowSpan="2"
+                                                       ProgressBarBrush="{TemplateBinding ProgressBarBrush}"
+                                                       ProgressBarThickness="{TemplateBinding ProgressBarThickness}"
+                                                       Tune="{TemplateBinding Tune}"
+                                                       Zoom="{TemplateBinding Zoom}"
+                                                       AllowRepositioning="{TemplateBinding AllowRepositioning}" />
+                            <controls:Curtains x:Name="Component_Curtains"
+                                               Grid.Row="1"
+                                               Tune="{TemplateBinding Tune}"
+                                               Zoom="{TemplateBinding Zoom}"
+                                               CueMarkBrush="{TemplateBinding CueMarkBrush}"
+                                               CueBarBackgroundBrush="{TemplateBinding CueBarBackgroundBrush}"
+                                               CueMarkAccentBrush="{TemplateBinding CueMarkAccentBrush}"
+                                               ShowCueMarks="{TemplateBinding ShowCueMarks}"
+                                               ShowCueMarkToolTip="{TemplateBinding ShowCueMarkToolTip}"
+                                               EnableCueMarksRepositioning="{TemplateBinding EnableCueMarksRepositioning}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type timeline:Timeline}" TargetType="timeline:Timeline">
+            <Setter Property="Template">
+                <ControlTemplate TargetType="timeline:Timeline">
+                    <Canvas Name="PART_Timeline" ClipToBounds="True" Height="20" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type waveform:Waveform}" TargetType="waveform:Waveform">
+            <Setter Property="Template">
+                <ControlTemplate TargetType="waveform:Waveform">
+                    <Canvas Name="PART_Waveform" ClipToBounds="True" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type controls:ProgressAnimator}" TargetType="controls:ProgressAnimator">
+            <Setter Property="Template">
+                <ControlTemplate TargetType="controls:ProgressAnimator">
+                    <Grid RowDefinitions="20,*">
+                        <Canvas Name="PART_Spacer" Grid.Row="0" ClipToBounds="True" />
+                        <Canvas Name="PART_ProgressLine" Grid.Row="1" ClipToBounds="True" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type controls:Curtains}" TargetType="controls:Curtains">
+            <Setter Property="Template">
+                <ControlTemplate TargetType="controls:Curtains">
+                    <Grid RowDefinitions="*,8">
+                        <Canvas Name="PART_Curtains" Grid.Row="0" ClipToBounds="True" />
+                        <Canvas Name="PART_LeftCurtain"
+                                Background="White" Opacity="0.4" HorizontalAlignment="Left"
+                                Grid.Row="0" ClipToBounds="True" />
+                        <Canvas Name="PART_RightCurtain"
+                                Background="White" Opacity="0.4" HorizontalAlignment="Right"
+                                Grid.Row="0" ClipToBounds="True" />
+                        <Canvas Name="PART_CueMarks"
+                                Background="{TemplateBinding CueBarBackgroundBrush}"
+                                Grid.Row="1" ClipToBounds="True" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Styles.Resources>
+
+</Styles>
