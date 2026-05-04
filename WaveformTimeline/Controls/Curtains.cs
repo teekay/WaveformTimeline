@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -337,7 +336,8 @@ namespace WaveformTimeline.Controls
                 .Select(t => (
                     Line: CueLine(t.Cue, t.Location),
                     Polygon: CueHandle(t.Cue, t.Location, _cueMarksCanvas.RenderSize.Height / 2)));
-            curtains.ForEach(AddCurtain);
+            foreach (var curtain in curtains)
+                AddCurtain(curtain);
         }
 
         private void AddCurtain((Line Line, Polygon Polygon) t)
@@ -393,9 +393,11 @@ namespace WaveformTimeline.Controls
 
         public void Clear()
         {
-            _cuePointMarks.ForEach(mark => _cueMarksCanvas?.Children.Remove(mark));
+            foreach (var mark in _cuePointMarks)
+                _cueMarksCanvas?.Children.Remove(mark);
             _cuePointMarks.Clear();
-            _cuePointLines.ForEach(line => MainCanvas?.Children.Remove(line));
+            foreach (var line in _cuePointLines)
+                MainCanvas?.Children.Remove(line);
             _cuePointLines.Clear();
             if (_leftSideCurtain != null)
                 _leftSideCurtain.Width = 0;
