@@ -9,7 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using MoreLinq;
 using WaveformTimeline.Commons;
 using WaveformTimeline.Primitives;
 using Brush = System.Windows.Media.Brush;
@@ -51,7 +50,11 @@ namespace WaveformTimeline.Controls.Timeline
         private static void OnTimelineTickBrushChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => 
             (d as Timeline)?.OnTimelineTickBrushChanged((Brush)e.NewValue);
 
-        private void OnTimelineTickBrushChanged(Brush newBrush) => MainCanvas.Children.OfType<Line>().ForEach(line => line.Stroke = newBrush);
+        private void OnTimelineTickBrushChanged(Brush newBrush)
+        {
+            foreach (var line in MainCanvas.Children.OfType<Line>())
+                line.Stroke = newBrush;
+        }
 
         /// <summary>
         /// Color of the timeline line and ticks
@@ -248,16 +251,20 @@ namespace WaveformTimeline.Controls.Timeline
             _timestampTextBlocks.AddRange(majorTicksAt
                 .Select(sec => (Second: sec, Location: timelineTickLocation.LocationOnXAxis(sec)))
                 .Select(sec => WithMargin(DrawText(timelineSource.TimespanAsString(sec.Second)), sec.Location)));
-            _timeLineTicks.ForEach(line => MainCanvas.Children.Add(line));
-            _timestampTextBlocks.ForEach(tb => MainCanvas.Children.Add(tb));
+            foreach (var line in _timeLineTicks)
+                MainCanvas.Children.Add(line);
+            foreach (var tb in _timestampTextBlocks)
+                MainCanvas.Children.Add(tb);
         }
 
         private void Clear()
         {            
             MainCanvas.Children.Clear(); // clear the canvas
-            _timestampTextBlocks.ForEach(textblock => MainCanvas.Children.Remove(textblock));
+            foreach (var textblock in _timestampTextBlocks)
+                MainCanvas.Children.Remove(textblock);
             _timestampTextBlocks.Clear();
-            _timeLineTicks.ForEach(line => MainCanvas.Children.Remove(line));
+            foreach (var line in _timeLineTicks)
+                MainCanvas.Children.Remove(line);
             _timeLineTicks.Clear();
         }
 

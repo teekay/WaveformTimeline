@@ -10,7 +10,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using MoreLinq.Extensions;
 using WaveformTimeline.Commons;
 using WaveformTimeline.Contracts;
 
@@ -502,7 +501,8 @@ namespace WaveformTimeline.Controls.Waveform
                 dashes.Add(dash);
                 MainCanvas.Children.Add(dash);
             }
-            lines.ForEach(AddDash);
+            foreach (var line in lines)
+                AddDash(line);
         }
 
         public void Clear()
