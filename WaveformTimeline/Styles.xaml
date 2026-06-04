@@ -36,6 +36,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="20" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition Height="8" />
                             </Grid.RowDefinitions>
                           <timeline:Timeline Grid.Row="0"
                                              x:Name="Component_Timeline"
@@ -65,6 +66,7 @@
                                                        AllowRepositioning="{TemplateBinding AllowRepositioning}"/>
                             <controls:Curtains x:Name="Component_Curtains"
                                                Grid.Row="1"
+                                               Grid.RowSpan="2"
                                                Tune="{TemplateBinding Tune}"
                                                Zoom="{TemplateBinding Zoom}"
                                                CueMarkBrush="{TemplateBinding CueMarkBrush}"
