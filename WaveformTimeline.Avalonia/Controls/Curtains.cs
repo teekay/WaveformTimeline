@@ -31,6 +31,7 @@ namespace WaveformTimeline.Controls
         private Canvas? _animatedCurtain;
         private bool _isMouseDown;
         private IDisposable? _watchesCues;
+        private IDisposable? _boundsDisposable;
 
         public static readonly StyledProperty<IBrush> CueMarkBrushProperty =
             AvaloniaProperty.Register<Curtains, IBrush>(nameof(CueMarkBrush),
@@ -112,8 +113,16 @@ namespace WaveformTimeline.Controls
             if (_leftSideCurtain != null) _leftSideCurtain.Width = 0;
             if (_rightSideCurtain != null) _rightSideCurtain.Width = 0;
 
-            var boundsObs = MainCanvas?.GetObservable(BoundsProperty);
-            boundsObs?.Subscribe(_ => Render());
+            _boundsDisposable?.Dispose();
+            _boundsDisposable = MainCanvas?.GetObservable(BoundsProperty)
+                .Subscribe(_ => Render());
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            _boundsDisposable?.Dispose();
+            _watchesCues?.Dispose();
         }
 
         protected override void OnTuneChanged()
@@ -149,6 +158,8 @@ namespace WaveformTimeline.Controls
             }
             CurtainMoving();
             _isMouseDown = true;
+            if (_selectedCuePointMark != null)
+                e.Pointer.Capture(this);
         }
 
         protected override void OnPointerMoved(PointerEventArgs e)
@@ -162,29 +173,38 @@ namespace WaveformTimeline.Controls
             if (currentPoint.X > MainCanvas.Bounds.Width - WaveformDimensions.RightMargin())
                 currentPoint = currentPoint.WithX(MainCanvas.Bounds.Width - WaveformDimensions.RightMargin());
 
-            var leftCorner = currentPoint.X - (_cueMarksCanvas.Bounds.Height / 2.5d);
-            var rightCorner = currentPoint.X + (_cueMarksCanvas.Bounds.Height / 2.5d);
-            if (EnableCueMarksRepositioning && leftCorner >= 0 && rightCorner <= MainCanvas.Bounds.Width)
+            var leftCorner = Math.Max(0, currentPoint.X - (_cueMarksCanvas.Bounds.Height / 2.5d));
+            var rightCorner = Math.Min(MainCanvas.Bounds.Width, currentPoint.X + (_cueMarksCanvas.Bounds.Height / 2.5d));
+            if (EnableCueMarksRepositioning)
                 MoveCuePoint(currentPoint, leftCorner, rightCorner);
         }
 
         protected override void OnPointerReleased(PointerReleasedEventArgs e)
         {
             base.OnPointerReleased(e);
+            e.Pointer.Capture(null);
             FinishCurtainMovement(e.GetPosition(MainCanvas!).X);
         }
 
         private void FinishCurtainMovement(double xPosition)
         {
-            if (!_isMouseDown || !EnableCueMarksRepositioning) return;
+            if (!_isMouseDown) return;
             _isMouseDown = false;
+            if (!EnableCueMarksRepositioning) return;
             MeasureArea();
             CurtainMoved(WaveformDimensions.PercentOfCompleteWaveform(xPosition));
+        }
+
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+        {
+            base.OnPointerCaptureLost(e);
+            _isMouseDown = false;
         }
 
         protected override void OnPointerExited(PointerEventArgs e)
         {
             base.OnPointerExited(e);
+            if (_selectedCuePointMark != null) return;
             if (MainCanvas != null)
                 FinishCurtainMovement(e.GetPosition(MainCanvas).X);
         }

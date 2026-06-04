@@ -222,20 +222,13 @@ namespace WaveformTimeline.Controls
             base.OnMouseLeftButtonDown(e);
             if (!EnableCueMarksRepositioning)
             {
-                AfterMouseLeftButtonDown();
+                _isMouseDown = true;
                 return;
             }
             CurtainMoving();
-            AfterMouseLeftButtonDown();
-        }
-
-        /// <summary>
-        /// A utility method
-        /// </summary>
-        private void AfterMouseLeftButtonDown()
-        {
-            //CaptureMouse();
             _isMouseDown = true;
+            if (_selectedCuePointMark != null)
+                CaptureMouse();
         }
 
         /// <summary>
@@ -261,13 +254,10 @@ namespace WaveformTimeline.Controls
                 currentPoint.X = MainCanvas.RenderSize.Width - WaveformDimensions.RightMargin();
             }
 
-            var leftCorner = currentPoint.X - (_cueMarksCanvas.RenderSize.Height / 2.5d);
-            var rightCorner = currentPoint.X + (_cueMarksCanvas.RenderSize.Height / 2.5d);
-            if (EnableCueMarksRepositioning
-                && leftCorner >= 0 && rightCorner <= MainCanvas.RenderSize.Width)
-            {
+            var leftCorner = Math.Max(0, currentPoint.X - (_cueMarksCanvas.RenderSize.Height / 2.5d));
+            var rightCorner = Math.Min(MainCanvas.RenderSize.Width, currentPoint.X + (_cueMarksCanvas.RenderSize.Height / 2.5d));
+            if (EnableCueMarksRepositioning)
                 MoveCuePoint(currentPoint, leftCorner, rightCorner);
-            }
         }
 
         /// <summary>
@@ -278,21 +268,29 @@ namespace WaveformTimeline.Controls
         protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonUp(e);
+            if (IsMouseCaptured) ReleaseMouseCapture();
             FinishCurtainMovement(e.GetPosition(MainCanvas).X);
         }
 
         private void FinishCurtainMovement(double xPosition)
         {
-            //ReleaseMouseCapture();
-            if (!_isMouseDown || !EnableCueMarksRepositioning) return;
+            if (!_isMouseDown) return;
             _isMouseDown = false;
+            if (!EnableCueMarksRepositioning) return;
             MeasureArea();
             CurtainMoved(WaveformDimensions.PercentOfCompleteWaveform(xPosition));
+        }
+
+        protected override void OnLostMouseCapture(MouseEventArgs e)
+        {
+            base.OnLostMouseCapture(e);
+            _isMouseDown = false;
         }
 
         protected override void OnMouseLeave(MouseEventArgs e)
         {
             base.OnMouseLeave(e);
+            if (IsMouseCaptured) return;
             FinishCurtainMovement(e.GetPosition(MainCanvas).X);
         }
 

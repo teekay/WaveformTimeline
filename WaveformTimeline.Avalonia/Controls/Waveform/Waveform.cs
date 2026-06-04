@@ -21,11 +21,10 @@ namespace WaveformTimeline.Controls.Waveform
     {
         public Waveform()
         {
-            _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("This class must be instantiated on the UI thread");
             _redrawObservable = new RedrawObservable();
         }
 
-        private readonly SynchronizationContext _uiContext;
+        private SynchronizationContext? _uiContext;
         private readonly RedrawObservable _redrawObservable;
         private IDisposable? _redrawDisposable;
         private IDisposable? _waveformBuildDisposable;
@@ -130,6 +129,7 @@ namespace WaveformTimeline.Controls.Waveform
             MainCanvas = e.NameScope.Find<Canvas>("PART_Waveform");
             if (MainCanvas == null) return;
 
+            _uiContext = SynchronizationContext.Current;
             MainCanvas.Background = new SolidColorBrush(Colors.Transparent);
             MainCanvas.Children.Add(_centerLine);
             MainCanvas.Children.Add(_leftPath);
@@ -142,11 +142,10 @@ namespace WaveformTimeline.Controls.Waveform
             }
             UpdateWaveformCacheScaling();
 
-            var context = SynchronizationContext.Current;
-            if (context != null && _redrawDisposable == null)
+            if (_uiContext != null && _redrawDisposable == null)
             {
                 _redrawDisposable = _redrawObservable.Sample(TimeSpan.FromMilliseconds(100))
-                    .ObserveOn(context)
+                    .ObserveOn(_uiContext)
                     .Subscribe(_ => Render());
             }
 
@@ -254,6 +253,7 @@ namespace WaveformTimeline.Controls.Waveform
             var resolution = WaveformResolution;
             var observable = Tune.WaveformStream();
             var steps = Math.Min(resolution, 1000);
+            if (_uiContext == null) return;
             _waveformBuildDisposable?.Dispose();
             _waveformBuildDisposable = observable.ObserveOn(_uiContext)
                 .Buffer(steps)
