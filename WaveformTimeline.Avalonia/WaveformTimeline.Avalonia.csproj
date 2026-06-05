@@ -6,10 +6,10 @@
     <AssemblyName>WaveformTimeline.Avalonia</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="[12.0.0,13.0.0)" />
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
-    <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
-  </ItemGroup>
+   <PackageReference Include="Avalonia" Version="[12.0.0,13.0.0)" />
+   <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="System.Reactive.Linq" Version="6.1.0" />
+ </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WaveformTimeline.Shared\WaveformTimeline.Shared.csproj" />
   </ItemGroup>
