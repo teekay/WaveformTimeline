@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version number (leave empty to read from AssemblyInfo.cs)"
+        description: "Version number (leave empty to read from csproj)"
         required: false
 
 jobs:
@@ -24,11 +24,11 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Extract Version from AssemblyInfo.cs (if not provided)
+    - name: Extract Version from csproj (if not provided)
       if: ${{ github.event.inputs.version == '' }}
       id: get_version
       run: |
-        $version = Select-String -Path WaveformTimeline/Properties/AssemblyInfo.cs -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | ForEach-Object { $_.Matches.Groups[1].Value }
+        $version = Select-String -Path ${{ env.Project_Path }} -Pattern '<Version>(.*)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }
         echo "version=$version" >> $env:GITHUB_OUTPUT
       shell: pwsh
 
