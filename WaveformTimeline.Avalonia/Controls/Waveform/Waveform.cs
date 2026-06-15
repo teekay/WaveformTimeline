@@ -131,15 +131,6 @@ namespace WaveformTimeline.Controls.Waveform
 
             _uiContext = SynchronizationContext.Current;
             MainCanvas.Background = new SolidColorBrush(Colors.Transparent);
-            MainCanvas.Children.Add(_centerLine);
-            MainCanvas.Children.Add(_leftPath);
-            MainCanvas.Children.Add(_rightPath);
-
-            if (CenterLineBrush != null)
-            {
-                _centerLine.StartPoint = new Point(0, MainCanvas.Bounds.Height);
-                _centerLine.EndPoint = new Point(MainCanvas.Bounds.Width, MainCanvas.Bounds.Height);
-            }
             UpdateWaveformCacheScaling();
 
             if (_uiContext != null && _redrawDisposable == null)
@@ -335,6 +326,13 @@ namespace WaveformTimeline.Controls.Waveform
         public void Clear()
         {
             _waveformBuildDisposable?.Dispose();
+            if (_renderingInBackground != null)
+            {
+                _renderingInBackground.DoWork -= ReadWaveformInBackground;
+                _renderingInBackground.RunWorkerCompleted -= OnBackgroundRenderingCompleted;
+                _renderingInBackground.Dispose();
+                _renderingInBackground = null;
+            }
             MainCanvas?.Children.Clear();
         }
     }

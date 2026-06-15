@@ -21,7 +21,6 @@ namespace WaveformTimeline.Controls
         private readonly Rectangle _captureMouse = new();
         private readonly IBrush _transparentBrush = new SolidColorBrush { Color = Color.FromArgb(0, 0, 0, 0), Opacity = 0 };
         private IDisposable? _playbackOnOffNotifier;
-        private IDisposable? _playbackTempoNotifier;
         private DispatcherTimer? _progressTimer;
         private IDisposable? _boundsDisposable;
 
@@ -122,14 +121,6 @@ namespace WaveformTimeline.Controls
                 })
                 .ObserveOn(uiContext)
                 .Subscribe(ControlProgressAnimation);
-            _playbackTempoNotifier = Observable.Create<EventArgs>(o =>
-                {
-                    EventHandler<EventArgs> h = (_, e) => o.OnNext(e);
-                    Tune.TempoShifted += h;
-                    return Disposable.Create(() => Tune.TempoShifted -= h);
-                })
-                .ObserveOn(uiContext)
-                .Subscribe(_ => { }); // tempo handled naturally by timer polling CurrentTime()
 
             _progressRect.Margin = new Thickness(WaveformDimensions.LeftMargin(), 0, 0, 0);
             _progressRect.Width = 0;
@@ -182,7 +173,6 @@ namespace WaveformTimeline.Controls
 
         private void Clear()
         {
-            _playbackTempoNotifier?.Dispose();
             _playbackOnOffNotifier?.Dispose();
             StopTimer();
             MainCanvas?.Children.Remove(_progressRect);

@@ -32,9 +32,11 @@ internal class NullPlayer : ICombiPlayer
     public void TrimStart(TimeSpan start) { }
     public void TrimEnd(TimeSpan end) { }
 
+#pragma warning disable CS0067
     public event EventHandler<EventArgs>? Transitioned;
     public event EventHandler<EventArgs>? TempoShifted;
     public event EventHandler<EventArgs>? CuesChanged;
+#pragma warning restore CS0067
 
     private class DummyWaveformObservable : IAudioWaveformStream
     {

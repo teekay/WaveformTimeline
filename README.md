@@ -11,8 +11,8 @@ WaveformTimeline control built for your convenience.
 # Dependencies
 * .NET 10 (dropped .NET Framework 4.8 support as of v1.2.0)
 * Avalonia 12.x (WaveformTimeline.Avalonia)
-* System.Reactive 5.0.0
-* System.Reactive.Linq 5.0.0
+* System.Reactive 6.1.0
+* System.Reactive.Linq 6.1.0
 
 # License
 The MIT License (MIT)
