@@ -26,7 +26,7 @@
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                        <Grid RowDefinitions="20,*">
+                        <Grid RowDefinitions="20,*,8">
                             <timeline:Timeline Grid.Row="0"
                                                x:Name="Component_Timeline"
                                                Tune="{TemplateBinding Tune}"
@@ -55,6 +55,7 @@
                                                        AllowRepositioning="{TemplateBinding AllowRepositioning}" />
                             <controls:Curtains x:Name="Component_Curtains"
                                                Grid.Row="1"
+                                               Grid.RowSpan="2"
                                                Tune="{TemplateBinding Tune}"
                                                Zoom="{TemplateBinding Zoom}"
                                                CueMarkBrush="{TemplateBinding CueMarkBrush}"

@@ -14,6 +14,16 @@ WaveformTimeline control built for your convenience.
 * System.Reactive 6.1.0
 * System.Reactive.Linq 6.1.0
 
+# Demos
+* `WaveformTimelineDemo` - WPF demo application.
+* `WaveformTimelineDemo.Avalonia` - Avalonia demo application for `WaveformTimeline.Avalonia`.
+
+Run the Avalonia demo with:
+
+```bash
+dotnet run --project WaveformTimelineDemo.Avalonia/WaveformTimelineDemo.Avalonia.csproj
+```
+
 # License
 The MIT License (MIT)
 

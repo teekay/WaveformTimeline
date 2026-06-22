@@ -26,12 +26,26 @@ public class ViewModel : INotifyPropertyChanged
 
     public ICombiPlayer Tune { get; private set; } = new NullPlayer();
     private string _fileUri = string.Empty;
+    private string _errorMessage = string.Empty;
 
     public ICommand OpenFile { get; }
     public ICommand Play { get; }
     public ICommand Pause { get; }
     public ICommand Stop { get; }
     public string Title => new StringWithPlaceholder(Tune.Name(), "No track").Value();
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        private set
+        {
+            if (_errorMessage == value) return;
+            _errorMessage = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasError));
+        }
+    }
+
+    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
@@ -55,11 +69,26 @@ public class ViewModel : INotifyPropertyChanged
         var file = files.FirstOrDefault();
         if (file == null) return;
 
-        _fileUri = file.Path.LocalPath;
-        Tune = new Tune(_fileUri);
-        OnPropertyChanged(nameof(Title));
-        OnPropertyChanged(nameof(Tune));
-        RaiseCanExecuteChanged();
+        try
+        {
+            _fileUri = file.Path.LocalPath;
+            Tune = new Tune(_fileUri);
+            ClearError();
+            OnPropertyChanged(nameof(Title));
+            OnPropertyChanged(nameof(Tune));
+        }
+        catch (Exception e)
+        {
+            _fileUri = string.Empty;
+            Tune = new NullPlayer();
+            SetError($"There was an error when trying to load the audio file: {e.Message}");
+            OnPropertyChanged(nameof(Title));
+            OnPropertyChanged(nameof(Tune));
+        }
+        finally
+        {
+            RaiseCanExecuteChanged();
+        }
     }
 
     private void PlayCmd()
@@ -67,30 +96,53 @@ public class ViewModel : INotifyPropertyChanged
         try
         {
             Tune.Play();
+            ClearError();
             OnPropertyChanged(nameof(Title));
             RaiseCanExecuteChanged();
         }
-        catch (Exception)
+        catch (Exception e)
         {
             _fileUri = string.Empty;
+            SetError($"There was an error when trying to start playback: {e.Message}");
+            RaiseCanExecuteChanged();
         }
     }
 
     private void PauseCmd()
     {
-        Tune.Pause();
+        try
+        {
+            Tune.Pause();
+            ClearError();
+        }
+        catch (Exception e)
+        {
+            SetError($"There was an error when trying to pause playback: {e.Message}");
+        }
         RaiseCanExecuteChanged();
     }
 
     private void StopCmd()
     {
-        Tune.Stop();
+        try
+        {
+            Tune.Stop();
+            ClearError();
+        }
+        catch (Exception e)
+        {
+            SetError($"There was an error when trying to stop playback: {e.Message}");
+        }
         _fileUri = string.Empty;
         Tune = new NullPlayer();
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(Tune));
         RaiseCanExecuteChanged();
     }
+
+    private void SetError(string message) => ErrorMessage = message;
+
+    private void ClearError() => ErrorMessage = string.Empty;
 
     private void RaiseCanExecuteChanged()
     {
