@@ -1,6 +1,6 @@
 ﻿A set of controls that display a stereo waveform, time, and progress information about an audio stream.
 
-This can be useful to you when you develop WPF apps that deal with audio.
+This can be useful to you when you develop WPF or Avalonia apps that deal with audio.
 
 # Implementation overview
 * Implement the interface ITune that represents a song being played back
@@ -9,14 +9,25 @@ This can be useful to you when you develop WPF apps that deal with audio.
 WaveformTimeline control built for your convenience.
 
 # Dependencies
-* .NET 10
-* System.Reactive 5.0.0
-* System.Reactive.Linq 5.0.0
+* .NET 10 (dropped .NET Framework 4.8 support as of v1.2.0)
+* Avalonia 12.x (WaveformTimeline.Avalonia)
+* System.Reactive 6.1.0
+* System.Reactive.Linq 6.1.0
+
+# Demos
+* `WaveformTimelineDemo` - WPF demo application.
+* `WaveformTimelineDemo.Avalonia` - Avalonia demo application for `WaveformTimeline.Avalonia`.
+
+Run the Avalonia demo with:
+
+```bash
+dotnet run --project WaveformTimelineDemo.Avalonia/WaveformTimelineDemo.Avalonia.csproj
+```
 
 # License
 The MIT License (MIT)
 
-Copyright (c) 2011-2021 Jacob Johnston, Tomáš Kohl
+Copyright (c) 2011-2026 Jacob Johnston, Tomáš Kohl
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

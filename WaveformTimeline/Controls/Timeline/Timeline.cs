@@ -258,13 +258,9 @@ namespace WaveformTimeline.Controls.Timeline
         }
 
         private void Clear()
-        {            
-            MainCanvas.Children.Clear(); // clear the canvas
-            foreach (var textblock in _timestampTextBlocks)
-                MainCanvas.Children.Remove(textblock);
+        {
+            MainCanvas.Children.Clear();
             _timestampTextBlocks.Clear();
-            foreach (var line in _timeLineTicks)
-                MainCanvas.Children.Remove(line);
             _timeLineTicks.Clear();
         }
 

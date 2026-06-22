@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	<LangVersion>latest</LangVersion>
     <RootNamespace>WaveformTimelineTests</RootNamespace>
     <AssemblyName>WaveformTimelineTests</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WaveformTimeline\WaveformTimeline.csproj" />
+    <ProjectReference Include="..\WaveformTimeline.Shared\WaveformTimeline.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />

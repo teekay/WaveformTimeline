@@ -1,0 +1,47 @@
+name: Publish Avalonia to NuGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (leave empty to read from csproj)"
+        required: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      Project_Path: WaveformTimeline.Avalonia/WaveformTimeline.Avalonia.csproj
+      NuGet_Source: https://api.nuget.org/v3/index.json
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Extract Version from csproj (if not provided)
+      if: ${{ github.event.inputs.version == '' }}
+      id: get_version
+      run: |
+        version=$(grep '<Version>' ${{ env.Project_Path }} | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Set Version Variable
+      run: |
+        echo "PACKAGE_VERSION=${{ github.event.inputs.version || steps.get_version.outputs.version }}" >> "$GITHUB_ENV"
+
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Project_Path }}
+
+    - name: Build Project
+      run: dotnet build ${{ env.Project_Path }} --configuration Release /p:Version=${{ env.PACKAGE_VERSION }} --no-restore
+
+    - name: Pack NuGet Package
+      run: dotnet pack ${{ env.Project_Path }} --configuration Release --no-build --output nupkg /p:Version=${{ env.PACKAGE_VERSION }}
+
+    - name: Publish to NuGet
+      run: dotnet nuget push nupkg/WaveformTimeline.Avalonia.${{ env.PACKAGE_VERSION }}.nupkg --source ${{ env.NuGet_Source }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
