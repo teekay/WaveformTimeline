@@ -1,4 +1,4 @@
-name: Publish Avalonia to NuGet
+name: Publish Shared to NuGet
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      Project_Path: WaveformTimeline.Avalonia/WaveformTimeline.Avalonia.csproj
+      Project_Path: WaveformTimeline.Shared/WaveformTimeline.Shared.csproj
       NuGet_Source: https://api.nuget.org/v3/index.json
 
     steps:

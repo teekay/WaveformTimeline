@@ -6,13 +6,8 @@
     <AssemblyName>WaveformTimeline.Avalonia</AssemblyName>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>WaveformTimeline.Avalonia</PackageId>
-    <Version>1.0.0</Version>
-    <Authors>Tomáš Kohl</Authors>
+    <Version>1.2.1</Version>
     <Description>A set of controls that display a stereo waveform, time, and progress information about an audio stream. Avalonia UI port.</Description>
-    <Copyright>Copyright © 2026 Tomáš Kohl</Copyright>
-    <PackageProjectUrl>https://github.com/teekay/WaveformTimeline</PackageProjectUrl>
-    <RepositoryUrl>git@github.com:teekay/WaveformTimeline.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageTags>avalonia;waveform;audio</PackageTags>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
