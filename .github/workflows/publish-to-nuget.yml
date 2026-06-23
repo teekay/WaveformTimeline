@@ -2,51 +2,33 @@ name: Publish to NuGet
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version number (leave empty to read from csproj)"
-        required: false
 
 jobs:
   publish:
     runs-on: windows-latest
     env:
-      Solution_Name: WaveformTimeline.sln
       Project_Path: WaveformTimeline\WaveformTimeline.csproj
       NuGet_Source: https://api.nuget.org/v3/index.json
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
-
-    - name: Extract Version from csproj (if not provided)
-      if: ${{ github.event.inputs.version == '' }}
-      id: get_version
-      run: |
-        $version = Select-String -Path ${{ env.Project_Path }} -Pattern '<Version>(.*)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }
-        echo "version=$version" >> $env:GITHUB_OUTPUT
-      shell: pwsh
-
-    - name: Set Version Variable
-      shell: pwsh
-      run: |
-        "PACKAGE_VERSION=${{ github.event.inputs.version || steps.get_version.outputs.version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Project_Path }}
 
     - name: Build Project
-      run: dotnet build ${{ env.Project_Path }} --configuration Release /p:Version=${{ env.PACKAGE_VERSION }} --no-restore
+      run: dotnet build ${{ env.Project_Path }} --configuration Release --no-restore
 
     - name: Pack NuGet Package
       shell: pwsh
-      run: dotnet pack ${{ env.Project_Path }} --configuration Release --no-build --output ${{ github.workspace }}\nupkg /p:Version=${{ env.PACKAGE_VERSION }}
+      run: dotnet pack ${{ env.Project_Path }} --configuration Release --no-build --output ${{ github.workspace }}\nupkg
 
     - name: Publish to NuGet
       shell: pwsh
-      run: dotnet nuget push ${{ github.workspace }}\nupkg\WaveformTimeline.${{ env.PACKAGE_VERSION }}.nupkg --source ${{ env.NuGet_Source }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{ github.workspace }}\nupkg\*.nupkg --source ${{ env.NuGet_Source }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate

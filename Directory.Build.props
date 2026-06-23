@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Tomáš Kohl</Authors>
+    <Copyright>Copyright © 2026 Tomáš Kohl</Copyright>
+    <PackageProjectUrl>https://github.com/teekay/WaveformTimeline</PackageProjectUrl>
+    <RepositoryUrl>git@github.com:teekay/WaveformTimeline.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+</Project>
